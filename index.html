@@ -40,7 +40,7 @@
             <p id="det-desc"></p>
             <div id="det-price" class="price-tag"></div>
             <button class="btn btn-add" onclick="addToCart()">🛒 إضافة للسلة</button>
-            <button class="btn btn-back" onclick="showPage('main-page')">رجوع للقائمة</button>
+            <button class="btn btn-back" onclick="showPage('main-page')">رجوع</button>
         </div>
     </div>
 
@@ -51,7 +51,6 @@
             <div class="payment-info" onclick="copyIBAN()">
                 <span>اضغط للنسخ 📋</span>
                 <code id="iban-text">SA00 0000 0000 0000 0000</code> </div>
-            <p style="font-size: 13px; color: #888;">عند الضغط على "إرسال"، سيصلنا طلبك تلقائياً.</p>
             <button class="btn btn-back" onclick="showPage('main-page')">إلغاء</button>
         </div>
     </div>
@@ -62,7 +61,7 @@
         let cart = [];
         let selectedProduct = "";
 
-        // ضع التوكن الخاص ببوتك هنا ليعمل الإرسال التلقائي
+        // تأكد من وضع التوكن والايدي الصحيحين
         const BOT_TOKEN = "8697542479:AAFEWJMoFlKqSx68yM5lLA165iYMYOF12vc"; 
         const MY_CHAT_ID = "806149851"; 
 
@@ -94,27 +93,29 @@
 
         tg.onEvent('mainButtonClicked', function() {
             if (document.getElementById('checkout-page').classList.contains('active-page')) {
-                sendOrderAutomatically();
+                sendOrderWithUserLink();
             } else {
                 showPage('checkout-page');
                 tg.MainButton.setText("🚀 إرسال الطلب الآن");
             }
         });
 
-        function sendOrderAutomatically() {
-            let orderSummary = "📦 طلب جديد من: " + tg.initDataUnsafe.user.first_name + "\n\n";
+        function sendOrderWithUserLink() {
+            let user = tg.initDataUnsafe.user;
+            let userLink = user.username ? `https://t.me/${user.username}` : `tg://user?id=${user.id}`;
+            
+            let orderSummary = "📦 طلب جديد من: " + user.first_name + "\n";
+            orderSummary += "👤 رابط الزبون: " + userLink + "\n\n"; // هنا رابط التواصل
+            
             cart.forEach((item, index) => {
                 orderSummary += `${index + 1}- ${item.name} (${item.price})\n`;
             });
-            
-            // إرسال الطلب عبر Telegram API مباشرة
+
             const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_CHAT_ID}&text=${encodeURIComponent(orderSummary)}`;
             
             fetch(url).then(() => {
-                tg.showAlert("✅ تم إرسال طلبك تلقائياً! يرجى إرسال صورة التحويل في المحادثة.");
+                tg.showAlert("✅ تم إرسال طلبك! تواصل مع التاجر عبر الشات لإرسال الإيصال.");
                 tg.close();
-            }).catch(() => {
-                tg.showAlert("خطأ في الإرسال، يرجى المحاولة لاحقاً.");
             });
         }
     </script>
