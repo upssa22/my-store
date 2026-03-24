@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر مونوپولي جو</title>
+    <title>متجر مونوپولي جو الاحترافي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main-color: #0088cc; --secondary-color: #31b545; --bg-color: #efeff4; }
@@ -22,18 +22,14 @@
         /* صفحة التفاصيل والدفع */
         .box { background: white; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
         .price-tag { font-size: 24px; color: var(--secondary-color); font-weight: bold; margin: 15px 0; }
-        .payment-info { background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px dashed var(--main-color); margin: 20px 0; position: relative; }
+        .payment-info { background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px dashed var(--main-color); margin: 20px 0; cursor: pointer; }
         .payment-info code { display: block; font-size: 18px; color: #333; margin-top: 5px; font-weight: bold; }
 
         /* الأزرار */
         .btn { border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 17px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
         .btn-add { background: var(--main-color); color: white; }
-        .btn-confirm { background: var(--secondary-color); color: white; }
         .btn-back { background: #8e8e93; color: white; margin-top: 10px; }
         .btn:active { opacity: 0.8; }
-
-        /* شريط السلة السفلي */
-        #cart-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--secondary-color); color: white; padding: 18px; text-align: center; font-size: 18px; font-weight: bold; border-radius: 15px; cursor: pointer; box-shadow: 0 5px 15px rgba(49, 181, 69, 0.4); display: none; }
     </style>
 </head>
 <body>
@@ -68,25 +64,20 @@
             <p id="det-desc" style="color: #666;"></p>
             <div id="det-price" class="price-tag"></div>
             <button class="btn btn-add" onclick="addToCart()">🛒 إضافة للسلة</button>
-            <button class="btn btn-back" onclick="showPage('main-page')">رجوع</button>
+            <button class="btn btn-back" onclick="showPage('main-page')">رجوع للقائمة</button>
         </div>
     </div>
 
     <div id="checkout-page" class="page">
         <div class="box">
-            <h2>💳 تأكيد الطلب والدفع</h2>
+            <h2>💳 معلومات الدفع</h2>
             <p>لإتمام الطلب، يرجى التحويل إلى الحساب التالي:</p>
             <div class="payment-info" onclick="copyIBAN()">
                 <span>اضغط للنسخ 📋</span>
                 <code id="iban-text">SA00 0000 0000 0000 0000</code> </div>
-            <p style="font-size: 14px; color: #888;">بعد التحويل، اضغط على الزر أدناه وأرسل صورة التحويل في المحادثة.</p>
-            <button class="btn btn-confirm" onclick="finalizeOrder()">✅ إرسال الطلب الآن</button>
-            <button class="btn btn-back" onclick="showPage('main-page')">إلغاء</button>
+            <p style="font-size: 14px; color: #888;">بعد التحويل، اضغط على زر "إرسال الطلب" في الأسفل وأرسل صورة التحويل في المحادثة.</p>
+            <button class="btn btn-back" onclick="showPage('main-page')">إلغاء والعودة</button>
         </div>
-    </div>
-
-    <div id="cart-bar" onclick="showPage('checkout-page')">
-        إتمام الطلب والدفع (<span id="cart-count">0</span>) 🚀
     </div>
 
     <script>
@@ -99,6 +90,9 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById(pageId).classList.add('active-page');
             window.scrollTo(0, 0);
+            
+            // إخفاء زر التلجرام الرئيسي عند العودة للقائمة لترتيب الواجهة
+            if(pageId === 'main-page' && cart.length === 0) tg.MainButton.hide();
         }
 
         function openDetails(name, desc, price) {
@@ -111,36 +105,41 @@
 
         function addToCart() {
             cart.push(selectedProduct);
-            document.getElementById('cart-bar').style.display = 'block';
-            document.getElementById('cart-count').innerText = cart.length;
+            
+            // تفعيل زر التلجرام المدمج (Main Button)
+            tg.MainButton.setText(`إتمام الطلب والدفع (${cart.length}) 🚀`);
+            tg.MainButton.setParams({ color: "#31b545", is_visible: true });
+            tg.MainButton.show();
+
             showPage('main-page');
-            tg.HapticFeedback.impactOccurred('medium');
+            tg.HapticFeedback.notificationOccurred('success');
         }
 
         function copyIBAN() {
             let iban = document.getElementById('iban-text').innerText;
             navigator.clipboard.writeText(iban);
-            alert("تم نسخ رقم الحساب بنجاح ✅");
+            tg.showAlert("تم نسخ رقم الحساب بنجاح ✅");
         }
 
-        function finalizeOrder() {
-    if (cart.length === 0) return; // منع إرسال سلة فارغة
+        // التعامل مع ضغطة زر التلجرام الرئيسي (MainButton)
+        tg.onEvent('mainButtonClicked', function() {
+            if (document.getElementById('checkout-page').classList.contains('active-page')) {
+                // إذا كان في صفحة الدفع وضغط الزر، يتم الإرسال
+                finalizeOrder();
+            } else {
+                // إذا كان في القائمة وضغط الزر، يذهب لصفحة الدفع
+                showPage('checkout-page');
+                tg.MainButton.setText("✅ إرسال الطلب الآن");
+            }
+        });
 
-    let orderSummary = "📦 طلب جديد:\n" + cart.map((item, index) => `${index + 1}- ${item.name} (${item.price})`).join('\n');
-    orderSummary += "\n\n⚠️ يرجى إرسال صورة التحويل الآن لتأكيد الطلب.";
-    
-    // يرسل البيانات للبوت
-    tg.sendData(orderSummary);
-    
-    // يظهر رسالة تأكيد للزبون قبل إغلاق المتجر
-    tg.showAlert("✅ تم إرسال طلبك بنجاح! يرجى إرسال صورة التحويل هنا في المحادثة.");
-    
-    // يغلق المتجر بعد ثانية واحدة ليعطي فرصة للزبون ليرى التنبيه
-    setTimeout(() => {
-        tg.close();
-    }, 1000);
-}
-        
+        function finalizeOrder() {
+            let orderSummary = "📦 طلب جديد:\n" + cart.map((item, index) => `${index + 1}- ${item.name} (${item.price})`).join('\n');
+            orderSummary += "\n\n⚠️ يرجى إرسال صورة التحويل الآن لتأكيد الطلب.";
+            
+            tg.sendData(orderSummary);
+            tg.close();
+        }
     </script>
 </body>
 </html>
