@@ -48,21 +48,34 @@
     <button id="cart-btn" onclick="sendOrder()">عرض الطلب (0)</button>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        let cart = [];
+    let tg = window.Telegram.WebApp;
+    
+    // يجعل المتجر يملأ الشاشة بالكامل
+    tg.expand();
+    
+    // إخفاء أي أزرار قديمة (ReplyKeyboard) بمجرد فتح المتجر
+    tg.ready();
 
-        function addToCart(name) {
-            cart.push(name);
-            document.getElementById('cart-btn').style.display = 'block';
-            document.getElementById('cart-btn').innerText = `إتمام الطلب (${cart.length})`;
-        }
+    let cart = [];
 
-        function sendOrder() {
-            let orderText = "طلب جديد من المتجر:\n" + cart.join('\n');
-            tg.sendData(orderText); // يرسل الطلب للبوت مباشرة
+    function add(name) {
+        cart.push(name);
+        // إظهار الزر الرئيسي الخاص بتلجرام بدلاً من الأزرار القديمة
+        tg.MainButton.setText(`إتمام الطلب (${cart.length})`);
+        tg.MainButton.show();
+        tg.MainButton.setParams({
+            color: "#31b545"
+        });
+    }
+
+    // عند الضغط على زر إتمام الطلب الرئيسي
+    tg.onEvent('mainButtonClicked', function(){
+        if (cart.length > 0) {
+            tg.sendData("طلب جديد: " + cart.join(", "));
             tg.close();
         }
-    </script>
+    });
+
+</script>
 </body>
 </html> 
