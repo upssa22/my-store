@@ -104,4 +104,36 @@
         function copyIBAN() {
             let iban = document.getElementById('iban-text').innerText;
             navigator.clipboard.writeText(iban);
-            tg.showAlert("
+            tg.showAlert("تم نسخ رقم الحساب بنجاح ✅");
+        }
+
+        tg.onEvent('mainButtonClicked', function() {
+            if (document.getElementById('checkout-page').classList.contains('active-page')) {
+                finalizeOrder();
+            } else {
+                showPage('checkout-page');
+                tg.MainButton.setText("✅ إرسال الطلب الآن");
+            }
+        });
+
+        function finalizeOrder() {
+            if (cart.length === 0) return;
+
+            let orderSummary = "📦 طلب جديد من المتجر:\n\n";
+            cart.forEach((item, index) => {
+                orderSummary += `${index + 1}- ${item.name} (${item.price})\n`;
+            });
+            orderSummary += "\n💳 يرجى إرسال صورة التحويل هنا الآن لتأكيد الطلب.";
+
+            // الطريقة المضمونة لـ Livegram: فتح رابط المحادثة مع النص
+            let encodedText = encodeURIComponent(orderSummary);
+            let botUser = "monopolynanobot";
+            
+            // هذا السطر يغلق المتجر ويضع النص في خانة الرسائل لدى الزبون
+            window.open(`https://t.me/${botUser}?text=${encodedText}`, '_blank');
+            
+            tg.close();
+        }
+    </script>
+</body>
+</html>
