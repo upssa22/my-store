@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجري المصغر</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f0f0; padding: 10px; }
+        .item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .info h3 { margin: 0; color: #333; }
+        .info p { margin: 5px 0; color: #666; font-size: 14px; }
+        .add-btn { background: #0088cc; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
+        #cart-btn { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #28a745; color: white; border: none; padding: 15px; border-radius: 30px; display: none; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>🛍️ متجر الخدمات الرقمية</h2>
+
+    <div id="items-container">
+        <div class="item">
+            <div class="info"><h3>ملصقات</h3><p>باقات ملصقات حصرية ومميزة.</p></div>
+            <button class="add-btn" onclick="addToCart('ملصقات')">إضافة</button>
+        </div>
+        <div class="item">
+            <div class="info"><h3>نجوم</h3><p>شحن نجوم تلجرام بأسعار منافسة.</p></div>
+            <button class="add-btn" onclick="addToCart('نجوم')">إضافة</button>
+        </div>
+        <div class="item">
+            <div class="info"><h3>حدث الشراكة</h3><p>تفعيل ميزات الشراكة الكاملة.</p></div>
+            <button class="add-btn" onclick="addToCart('حدث الشراكة')">إضافة</button>
+        </div>
+        <div class="item">
+            <div class="info"><h3>حدث السباق</h3><p>تطوير النقاط في أحداث السباق.</p></div>
+            <button class="add-btn" onclick="addToCart('حدث السباق')">إضافة</button>
+        </div>
+        <div class="item">
+            <div class="info"><h3>ثغرة</h3><p>توضيح الثغرات المتاحة وكيفية الاستفادة.</p></div>
+            <button class="add-btn" onclick="addToCart('ثغرة')">إضافة</button>
+        </div>
+        <div class="item">
+            <div class="info"><h3>شريط الأصدقاء</h3><p>زيادة التفاعل وإضافة الأصدقاء.</p></div>
+            <button class="add-btn" onclick="addToCart('شريط الأصدقاء')">إضافة</button>
+        </div>
+    </div>
+
+    <button id="cart-btn" onclick="sendOrder()">عرض الطلب (0)</button>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        let cart = [];
+
+        function addToCart(name) {
+            cart.push(name);
+            document.getElementById('cart-btn').style.display = 'block';
+            document.getElementById('cart-btn').innerText = `إتمام الطلب (${cart.length})`;
+        }
+
+        function sendOrder() {
+            let orderText = "طلب جديد من المتجر:\n" + cart.join('\n');
+            tg.sendData(orderText); // يرسل الطلب للبوت مباشرة
+            tg.close();
+        }
+    </script>
+</body>
+</html> 
