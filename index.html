@@ -124,10 +124,22 @@
         }
 
         function finalizeOrder() {
-            let orderSummary = "📦 طلب جديد:\n" + cart.map((item, index) => `${index + 1}- ${item.name} (${item.price})`).join('\n');
-            orderSummary += "\n\n⚠️ يرجى إرسال صورة التحويل الآن لتأكيد الطلب.";
-            tg.sendData(orderSummary);
-            tg.close();
+    if (cart.length === 0) return; // منع إرسال سلة فارغة
+
+    let orderSummary = "📦 طلب جديد:\n" + cart.map((item, index) => `${index + 1}- ${item.name} (${item.price})`).join('\n');
+    orderSummary += "\n\n⚠️ يرجى إرسال صورة التحويل الآن لتأكيد الطلب.";
+    
+    // يرسل البيانات للبوت
+    tg.sendData(orderSummary);
+    
+    // يظهر رسالة تأكيد للزبون قبل إغلاق المتجر
+    tg.showAlert("✅ تم إرسال طلبك بنجاح! يرجى إرسال صورة التحويل هنا في المحادثة.");
+    
+    // يغلق المتجر بعد ثانية واحدة ليعطي فرصة للزبون ليرى التنبيه
+    setTimeout(() => {
+        tg.close();
+    }, 1000);
+}
         }
     </script>
 </body>
