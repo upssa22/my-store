@@ -2,50 +2,143 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم | متجر مونوپولي ⚙️</title>
+    <title>نظام إدارة مونوپولي الاحترافي ⚙️</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --main: #0088cc; --bg: #f4f7f6; }
-        body { font-family: system-ui; background: var(--bg); padding: 20px; direction: rtl; }
-        .box { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        :root { --main: #0088cc; --danger: #e74c3c; --success: #27ae60; --dark: #2c3e50; }
+        body { font-family: system-ui, sans-serif; background: #f0f2f5; margin: 0; direction: rtl; }
+        
+        /* واجهة تسجيل الدخول */
+        #login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        
+        /* لوحة التحكم */
+        #main-panel { display: none; padding: 20px; }
+        .sidebar { background: var(--dark); color: white; width: 250px; height: 100vh; position: fixed; right: 0; top: 0; padding: 20px; box-sizing: border-box; }
+        .content { margin-right: 260px; padding: 20px; }
+        
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 20px; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 15px; }
         button { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
-        .del { background: #ff4d4d; width: auto; padding: 5px 10px; font-size: 12px; }
-        img { border-radius: 8px; margin-left: 10px; }
+        .btn-danger { background: var(--danger); }
+        
+        .permission-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #eee; margin: 2px; display: inline-block; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2>➕ إضافة منتج جديد</h2>
-    <input type="text" id="name" placeholder="اسم المنتج">
-    <input type="number" id="price" placeholder="السعر (رقم فقط)">
-    <input type="text" id="img" placeholder="رابط صورة المنتج">
-    <textarea id="desc" placeholder="وصف المنتج"></textarea>
-    <button onclick="saveProduct()">🚀 نشر المنتج في المتجر</button>
+<div id="login-screen">
+    <div class="login-box">
+        <h2>تسجيل دخول الإدارة</h2>
+        <input type="email" id="login-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="login-pass" placeholder="كلمة المرور">
+        <button onclick="attemptLogin()">دخول آمن 🔒</button>
+        <p style="font-size: 12px; color: #888;">نسيت كلمة المرور؟ تواصل مع المدير العام</p>
+    </div>
+</div>
 
-    <hr>
-    <h3>📦 المنتجات المعروضة حالياً</h3>
-    <div id="list">جاري تحميل المنتجات...</div>
+<div id="main-panel">
+    <div class="sidebar">
+        <h3>مونوپولي ستور</h3>
+        <hr>
+        <p id="staff-name">...</p>
+        <small id="staff-role" style="color: #3498db;"></small>
+        <br><br>
+        <button onclick="showSection('prod-sec')">📦 المنتجات</button>
+        <button onclick="showSection('sales-sec')">🧾 المبيعات</button>
+        <button onclick="showSection('users-sec')">👥 الزبائن</button>
+        <button id="admin-only-btn" style="display:none;" onclick="showSection('staff-sec')">👮 إدارة المشرفين</button>
+        <button class="btn-danger" onclick="location.reload()">تسجيل خروج</button>
+    </div>
+
+    <div class="content">
+        <div id="staff-sec" class="section card" style="display:none;">
+            <h2>👮 إضافة مشرف جديد وتحديد صلاحياته</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="text" id="s-name" placeholder="الاسم الكامل">
+                <input type="email" id="s-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="s-pass" placeholder="كلمة المرور">
+                <select id="s-role">
+                    <option value="moderator">مشرف (Moderator)</option>
+                    <option value="admin">مدير (Admin)</option>
+                </select>
+            </div>
+            <div style="margin: 10px 0; font-size: 14px;">
+                <label><input type="checkbox" id="can-del"> حذف المنتجات</label>
+                <label style="margin-right:20px;"><input type="checkbox" id="can-pts"> تعديل نرد الزبائن</label>
+            </div>
+            <button onclick="addStaff()">إضافة المشرف ✅</button>
+            <div id="staff-list"></div>
+        </div>
+
+        <div id="prod-sec" class="section card">
+            <h2>📦 إدارة المنتجات</h2>
+            <div id="p-list-container"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-    // 1. اطلب كلمة السر فور فتح الصفحة
-    const password = prompt("الرجاء إدخال كلمة سر المدير للدخول:");
-    
-    // ⚠️ اختر كلمة السر الخاصة بك هنا (مثلاً: 123456)
-    if (password !== "A1dmin") {
-        alert("عذراً، كلمة السر خاطئة!");
-        document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>⛔ غير مصرح لك بالدخول</h1>";
-    }
-
-    // 2. إعدادات Supabase (تأكد أن روابطك موجودة هنا)
-    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co'; 
-    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q'; 
+    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
+    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
     const _supabase = supabase.createClient(S_URL, S_KEY);
 
-    // بقية الدوال (saveProduct, load, del) تبقى كما هي دون تغيير...
+    let currentStaff = null;
+
+    async function attemptLogin() {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+
+        let { data, error } = await _supabase
+            .from('staff')
+            .select('*')
+            .eq('email', email)
+            .eq('password', pass)
+            .single();
+
+        if (error || !data) return alert("بيانات الدخول خاطئة!");
+
+        currentStaff = data;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-panel').style.display = 'block';
+        
+        document.getElementById('staff-name').innerText = data.full_name;
+        document.getElementById('staff-role').innerText = (data.role === 'admin' ? "مدير عام" : "مشرف متجر");
+
+        if(data.role === 'admin') {
+            document.getElementById('admin-only-btn').style.display = 'block';
+            loadStaffList();
+        }
+    }
+
+    async function addStaff() {
+        if(currentStaff.role !== 'admin') return;
+        const { error } = await _supabase.from('staff').insert([{
+            full_name: document.getElementById('s-name').value,
+            email: document.getElementById('s-email').value,
+            password: document.getElementById('s-pass').value,
+            role: document.getElementById('s-role').value,
+            can_delete_product: document.getElementById('can-del').checked,
+            can_edit_points: document.getElementById('can-pts').checked
+        }]);
+        if(!error) { alert("تمت إضافة المشرف بنجاح!"); loadStaffList(); }
+    }
+
+    async function loadStaffList() {
+        let { data } = await _supabase.from('staff').select('*');
+        document.getElementById('staff-list').innerHTML = data.map(s => `
+            <div style="border-bottom:1px solid #eee; padding:10px;">
+                <b>${s.full_name}</b> (${s.role})<br>
+                <small>${s.email}</small>
+                <button class="btn-danger" style="width:auto; padding:2px 8px; font-size:11px;" onclick="removeStaff(${s.id})">إزالة</button>
+            </div>
+        `).join('');
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
 </script>
 </body>
 </html>
