@@ -6,53 +6,72 @@
     <title>متجر مونوپولي المطور</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #0088cc; --sub: #31b545; --bg: #efeff4; }
+        :root { --main: #0088cc; --sub: #31b545; --bg: #f0f2f5; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; direction: rtl; }
-        .page { display: none; animation: fadeIn 0.3s; }
+        
+        /* نظام الصفحات */
+        .page { display: none; animation: fadeIn 0.3s ease; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card { background: white; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; overflow: hidden; }
-        .card img { width: 100%; height: 180px; object-fit: cover; }
+        /* كروت المنتجات */
+        .card { background: white; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; overflow: hidden; border: 1px solid #eee; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
         .card-info { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .card-info h3 { margin: 0; font-size: 17px; color: #333; }
+        .price-badge { background: #e8f5e9; color: var(--sub); padding: 5px 12px; border-radius: 10px; font-weight: bold; }
+
+        /* صفحة التفاصيل */
+        .box { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .qty-box { display: flex; align-items: center; justify-content: center; gap: 25px; margin: 25px 0; }
+        .qty-btn { background: var(--main); color: white; border: none; width: 45px; height: 45px; border-radius: 14px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        .box { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); text-align: center; }
-        .qty-box { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0; }
-        .qty-btn { background: var(--main); color: white; border: none; width: 45px; height: 45px; border-radius: 12px; font-size: 20px; cursor: pointer; }
-        
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        .btn-confirm { background: var(--sub); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 14px; border: 1.5px solid #eee; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--main); }
+
+        .btn-add { background: var(--sub); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-cancel { background: none; border: none; color: #999; margin-top: 15px; cursor: pointer; font-size: 15px; }
+
+        /* سلة مؤقتة */
+        .cart-status { text-align: center; color: #666; font-size: 14px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="home" class="page active">
-        <h2 style="text-align: center;">🛍️ متجر مونوپولي الآمن</h2>
+        <h2 style="text-align: center; color: #222;">🛍️ متجر مونوپولي</h2>
+        <div id="cart-count" class="cart-status">السلة فارغة حالياً</div>
         <div id="product-list">
-            <div class="card" onclick="openP('🃏 ملصقات نادرة', 'احصل على الملصقات المفقودة لإنهاء الألبوم فوراً.', 5, 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500')">
-                <img src="https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500" alt="">
-                <div class="card-info"><h3>🃏 ملصقات نادرة</h3> <b>5$</b></div>
+            <div class="card" onclick="openP('🃏 ملصقات نادرة', 'احصل على الملصقات المفقودة لإكمال ألبومك فوراً.', 5, 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500')">
+                <img src="https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500">
+                <div class="card-info"><h3>🃏 ملصقات نادرة</h3> <span class="price-badge">5$</span></div>
             </div>
-            <div class="card" onclick="openP('⭐ شحن نجوم', 'شحن نجوم تلجرام رسمي وآمن 100%.', 10, 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500')">
-                <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500" alt="">
-                <div class="card-info"><h3>⭐ شحن نجوم</h3> <b>10$</b></div>
+            <div class="card" onclick="openP('⭐ شحن نجوم', 'شحن نجوم تلجرام رسمي وآمن لفتح الميزات الحصرية.', 10, 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500')">
+                <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500">
+                <div class="card-info"><h3>⭐ شحن نجوم</h3> <span class="price-badge">10$</span></div>
+            </div>
+            <div class="card" onclick="openP('🚀 زيادة مستوى', 'رفع مستوى حسابك في اللعبة بشكل سريع ومضمون.', 15, 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500')">
+                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500">
+                <div class="card-info"><h3>🚀 زيادة مستوى</h3> <span class="price-badge">15$</span></div>
             </div>
         </div>
     </div>
 
     <div id="details" class="page">
         <div class="box">
-            <img id="p-img" style="width: 100%; border-radius: 15px; height: 200px; object-fit: cover;" src="" alt="">
-            <h2 id="p-title"></h2>
-            <p id="p-desc" style="color: #666;"></p>
+            <img id="p-img" style="width: 100%; border-radius: 18px; height: 180px; object-fit: cover;" src="">
+            <h2 id="p-title" style="margin: 15px 0 5px;"></h2>
+            <p id="p-desc" style="color: #777; font-size: 14px; line-height: 1.5;"></p>
+            
             <div class="qty-box">
                 <button class="qty-btn" onclick="changeQty(-1)">-</button>
-                <b id="qty-val" style="font-size: 24px;">1</b>
+                <b id="qty-val" style="font-size: 26px; min-width: 40px;">1</b>
                 <button class="qty-btn" onclick="changeQty(1)">+</button>
             </div>
-            <input type="text" id="user-id" placeholder="رابط حسابك أو اسمك في اللعبة">
-            <button class="btn-confirm" onclick="addToCart()">🛒 إضافة للسلة</button>
-            <button onclick="showPage('home')" style="background: none; border: none; color: #888; margin-top: 15px; cursor: pointer;">عودة</button>
+            
+            <input type="text" id="user-id" placeholder="أدخل رابط حسابك أو اسمك في اللعبة">
+            <button class="btn-add" onclick="addToCart()">🛒 إضافة للمشتريات</button>
+            <button class="btn-cancel" onclick="showPage('home')">إلغاء والعودة</button>
         </div>
     </div>
 
@@ -64,10 +83,8 @@
         function showPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id === 'home' && cart.length > 0) {
-                tg.MainButton.setText(`إرسال الطلب (${cart.length}) 🚀`);
-                tg.MainButton.show();
-            }
+            window.scrollTo(0, 0);
+            updateMainButton();
         }
 
         function openP(name, desc, price, img) {
@@ -77,6 +94,7 @@
             document.getElementById('p-desc').innerText = desc;
             document.getElementById('p-img').src = img;
             document.getElementById('qty-val').innerText = qty;
+            document.getElementById('user-id').value = ""; // تفريغ الخانة
             showPage('details');
         }
 
@@ -87,32 +105,57 @@
 
         function addToCart() {
             let user = document.getElementById('user-id').value;
-            if(!user) return tg.showAlert("يرجى إدخال معلومات حسابك");
+            if(!user) return tg.showAlert("يرجى إدخال معلومات حسابك لتسهيل الخدمة.");
+            
             cart.push({...currentP, qty, user});
+            document.getElementById('cart-count').innerText = `لديك (${cart.length}) منتجات في السلة`;
             showPage('home');
+            tg.HapticFeedback.notificationOccurred('success');
         }
 
+        function updateMainButton() {
+            if (cart.length > 0 && document.getElementById('home').classList.contains('active')) {
+                tg.MainButton.setText(`إرسال الطلب الكلي (${cart.length}) 🚀`);
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        // معالجة الإرسال النهائي
         tg.MainButton.onClick(async () => {
             tg.MainButton.showProgress();
             
-            let summary = `<b>📦 طلب جديد من: ${tg.initDataUnsafe.user.first_name}</b>\n\n`;
-            cart.forEach((i, n) => {
-                summary += `${n+1}- ${i.name} (الكمية: ${i.qty})\n👤 الحساب: ${i.user}\n\n`;
+            let user = tg.initDataUnsafe.user;
+            let userLink = user.username ? `https://t.me/${user.username}` : `tg://user?id=${user.id}`;
+            
+            let summary = `<b>📦 طلب جديد مجمع</b>\n`;
+            summary += `👤 <b>العميل:</b> ${user.first_name}\n`;
+            summary += `🔗 <b>الرابط:</b> ${userLink}\n`;
+            summary += `────────────────────\n`;
+            
+            cart.forEach((item, index) => {
+                summary += `<b>${index + 1}- ${item.name}</b>\n`;
+                summary += `🔹 الكمية: ${item.qty}\n`;
+                summary += `🆔 الحساب: <code>${item.user}</code>\n\n`;
             });
 
-            // إرسال الطلب للـ API المخفي
             try {
                 const res = await fetch('/api/send', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ message: summary })
                 });
+                
                 if(res.ok) {
-                    tg.showAlert("✅ تم إرسال طلبك بنجاح!");
+                    tg.showAlert("✅ وصل طلبك بنجاح! سيتم التواصل معك قريباً.");
+                    cart = []; 
                     tg.close();
+                } else {
+                    tg.showAlert("❌ حدث خطأ في النظام، يرجى المحاولة لاحقاً.");
                 }
             } catch(e) {
-                tg.showAlert("❌ فشل الإرسال، حاول لاحقاً.");
+                tg.showAlert("❌ فشل الاتصال بالخادم.");
             }
             tg.MainButton.hideProgress();
         });
