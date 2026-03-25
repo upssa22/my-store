@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم | متجر مونوپولي ⚙️</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root { --main: #0088cc; --bg: #f4f7f6; }
+        body { font-family: system-ui; background: var(--bg); padding: 20px; direction: rtl; }
+        .box { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
+        .del { background: #ff4d4d; width: auto; padding: 5px 10px; font-size: 12px; }
+        img { border-radius: 8px; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>➕ إضافة منتج جديد</h2>
+    <input type="text" id="name" placeholder="اسم المنتج">
+    <input type="number" id="price" placeholder="السعر (رقم فقط)">
+    <input type="text" id="img" placeholder="رابط صورة المنتج">
+    <textarea id="desc" placeholder="وصف المنتج"></textarea>
+    <button onclick="saveProduct()">🚀 نشر المنتج في المتجر</button>
+
+    <hr>
+    <h3>📦 المنتجات المعروضة حالياً</h3>
+    <div id="list">جاري تحميل المنتجات...</div>
+</div>
+
+<script>
+    // ⚠️ استبدل الروابط هنا بالتي نسختها من Supabase
+    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co'; 
+    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q'; 
+
+    const _supabase = supabase.createClient(S_URL, S_KEY);
+
+    async function saveProduct() {
+        const name = document.getElementById('name').value;
+        const price = document.getElementById('price').value;
+        const img = document.getElementById('img').value;
+        const desc = document.getElementById('desc').value;
+
+        const { error } = await _supabase.from('products').insert([{
+            name: name,
+            description: desc,
+            price: parseFloat(price),
+            image_url: img
+        }]);
+
+        if (error) alert("خطأ: " + error.message);
+        else { alert("تمت إضافة المنتج بنجاح! ✅"); location.reload(); }
+    }
+
+    async function load() {
+        let { data: prods, error } = await _supabase.from('products').select('*');
+        const list = document.getElementById('list');
+        if (error) { list.innerHTML = "خطأ في التحميل"; return; }
+        list.innerHTML = prods.length ? "" : "لا يوجد منتجات حالياً";
+        prods.forEach(p => {
+            list.innerHTML += `<div class="item">
+                <div style="display:flex; align-items:center;">
+                    <img src="${p.image_url}" width="40" height="40">
+                    <span>${p.name} (${p.price}$)</span>
+                </div>
+                <button class="del" onclick="del(${p.id})">حذف</button>
+            </div>`;
+        });
+    }
+
+    async function del(id) {
+        if(confirm("هل أنت متأكد من حذف هذا المنتج؟")) { 
+            await _supabase.from('products').delete().eq('id', id); 
+            location.reload(); 
+        }
+    }
+    load();
+</script>
+</body>
+</html>
