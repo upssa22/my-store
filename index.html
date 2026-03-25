@@ -2,163 +2,305 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر مونوپولي المطور</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monopoly Store | المتجر الاحترافي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --main: #0088cc; --sub: #31b545; --bg: #f0f2f5; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; direction: rtl; }
+        :root {
+            --primary: #0088cc;
+            --secondary: #31b545;
+            --bg: #f0f2f5;
+            --text-main: #222;
+            --text-sub: #666;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        /* الهيدر المطور */
+        .header {
+            background: var(--white);
+            padding: 20px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .user-info b { font-size: 18px; color: var(--primary); }
+        .points-box {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #d81b60;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* نظام الأقسام (Categories) */
+        .categories-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px 10px;
+            gap: 10px;
+            scrollbar-width: none;
+        }
+        .categories-container::-webkit-scrollbar { display: none; }
         
-        /* نظام الصفحات */
-        .page { display: none; animation: fadeIn 0.3s ease; }
-        .active { display: block; }
+        .cat-btn {
+            background: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            color: var(--text-sub);
+        }
+        .cat-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            position: relative;
+        }
+        .product-card:active { transform: scale(0.95); }
+        .product-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+        .product-card-body { padding: 12px; text-align: center; }
+        .product-card-body h3 { margin: 5px 0; font-size: 14px; height: 34px; overflow: hidden; }
+        .price-badge {
+            background: #e3f2fd;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* صفحات تفاصيل المنتج */
+        .page { display: none; padding: 20px; }
+        .active-page { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* كروت المنتجات */
-        .card { background: white; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; overflow: hidden; border: 1px solid #eee; }
-        .card img { width: 100%; height: 160px; object-fit: cover; }
-        .card-info { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .card-info h3 { margin: 0; font-size: 17px; color: #333; }
-        .price-badge { background: #e8f5e9; color: var(--sub); padding: 5px 12px; border-radius: 10px; font-weight: bold; }
 
-        /* صفحة التفاصيل */
-        .box { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        .qty-box { display: flex; align-items: center; justify-content: center; gap: 25px; margin: 25px 0; }
-        .qty-btn { background: var(--main); color: white; border: none; width: 45px; height: 45px; border-radius: 14px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        
-        input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 14px; border: 1.5px solid #eee; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--main); }
-
-        .btn-add { background: var(--sub); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-cancel { background: none; border: none; color: #999; margin-top: 15px; cursor: pointer; font-size: 15px; }
-
-        /* سلة مؤقتة */
-        .cart-status { text-align: center; color: #666; font-size: 14px; margin-bottom: 10px; }
+        .details-card {
+            background: var(--white);
+            border-radius: 30px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .input-group { margin: 15px 0; text-align: right; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--text-sub); font-size: 13px; }
+        .custom-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1.5px solid #eee;
+            box-sizing: border-box;
+            background: #fafafa;
+            font-size: 16px;
+        }
+        .buy-button {
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div id="home" class="page active">
-        <h2 style="text-align: center; color: #222;">🛍️ متجر مونوپولي</h2>
-        <div id="cart-count" class="cart-status">السلة فارغة حالياً</div>
-        <div id="product-list">
-            <div class="card" onclick="openP('🃏 ملصقات نادرة', 'احصل على الملصقات المفقودة لإكمال ألبومك فوراً.', 5, 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500')">
-                <img src="https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500">
-                <div class="card-info"><h3>🃏 ملصقات نادرة</h3> <span class="price-badge">5$</span></div>
+    <div class="header" id="main-header">
+        <div class="user-info">أهلاً، <b id="user-name">...</b> 👋</div>
+        <div class="points-box">💰 <span id="points-val">0</span> نرد</div>
+    </div>
+
+    <div id="home-page" class="page active-page">
+        <div class="categories-container" id="cats-bar">
             </div>
-            <div class="card" onclick="openP('⭐ شحن نجوم', 'شحن نجوم تلجرام رسمي وآمن لفتح الميزات الحصرية.', 10, 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500')">
-                <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500">
-                <div class="card-info"><h3>⭐ شحن نجوم</h3> <span class="price-badge">10$</span></div>
-            </div>
-            <div class="card" onclick="openP('🚀 زيادة مستوى', 'رفع مستوى حسابك في اللعبة بشكل سريع ومضمون.', 15, 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500')">
-                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500">
-                <div class="card-info"><h3>🚀 زيادة مستوى</h3> <span class="price-badge">15$</span></div>
-            </div>
+        <div class="products-grid" id="products-list">
+            <p style="text-align: center; grid-column: span 2;">جاري تحميل المنتجات...</p>
         </div>
     </div>
 
-    <div id="details" class="page">
-        <div class="box">
-            <img id="p-img" style="width: 100%; border-radius: 18px; height: 180px; object-fit: cover;" src="">
-            <h2 id="p-title" style="margin: 15px 0 5px;"></h2>
-            <p id="p-desc" style="color: #777; font-size: 14px; line-height: 1.5;"></p>
+    <div id="details-page" class="page">
+        <div class="details-card">
+            <img id="detail-img" style="width: 100%; height: 200px; object-fit: cover; border-radius: 20px;">
+            <h2 id="detail-title"></h2>
+            <p id="detail-desc" style="color: var(--text-sub);"></p>
             
-            <div class="qty-box">
-                <button class="qty-btn" onclick="changeQty(-1)">-</button>
-                <b id="qty-val" style="font-size: 26px; min-width: 40px;">1</b>
-                <button class="qty-btn" onclick="changeQty(1)">+</button>
-            </div>
+            <div id="dynamic-fields"></div>
             
-            <input type="text" id="user-id" placeholder="أدخل رابط حسابك أو اسمك في اللعبة">
-            <button class="btn-add" onclick="addToCart()">🛒 إضافة للمشتريات</button>
-            <button class="btn-cancel" onclick="showPage('home')">إلغاء والعودة</button>
+            <button class="buy-button" onclick="addToCart()">إضافة للسلة 🛒</button>
+            <button onclick="goBack()" style="background:none; border:none; color:#888; margin-top:20px;">← العودة للمتجر</button>
         </div>
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.expand();
-        let cart = [], currentP = {}, qty = 1;
+        tg.enableClosingConfirmation();
 
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo(0, 0);
-            updateMainButton();
+        // ⚠️ إعدادات الربط
+        const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
+        const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
+        const _supabase = supabase.createClient(S_URL, S_KEY);
+
+        let allProducts = [], cart = [], selectedProduct = {};
+
+        async function init() {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "لاعب";
+            
+            // جلب المنتجات
+            let { data, error } = await _supabase.from('products').select('*');
+            if (error) return alert("خطأ في الربط!");
+            
+            allProducts = data;
+            renderCategories();
+            renderProducts(data);
         }
 
-        function openP(name, desc, price, img) {
-            currentP = {name, price};
-            qty = 1;
-            document.getElementById('p-title').innerText = name;
-            document.getElementById('p-desc').innerText = desc;
-            document.getElementById('p-img').src = img;
-            document.getElementById('qty-val').innerText = qty;
-            document.getElementById('user-id').value = ""; // تفريغ الخانة
-            showPage('details');
+        function renderCategories() {
+            const bar = document.getElementById('cats-bar');
+            const uniqueCats = ['الكل', ...new Set(allProducts.map(p => p.category).filter(c => c))];
+            bar.innerHTML = uniqueCats.map(c => `
+                <button class="cat-btn ${c === 'الكل' ? 'active' : ''}" onclick="filterProducts('${c}', this)">${c}</button>
+            `).join('');
         }
 
-        function changeQty(v) {
-            qty = Math.max(1, qty + v);
-            document.getElementById('qty-val').innerText = qty;
+        function renderProducts(list) {
+            const grid = document.getElementById('products-list');
+            grid.innerHTML = list.map(p => `
+                <div class="product-card" onclick="showProduct(${p.id})">
+                    <img src="${p.image_url}">
+                    <div class="product-card-body">
+                        <h3>${p.name}</h3>
+                        <div class="price-badge">${p.price}$</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterProducts(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filtered = cat === 'الكل' ? allProducts : allProducts.filter(p => p.category === cat);
+            renderProducts(filtered);
+        }
+
+        function showProduct(id) {
+            selectedProduct = allProducts.find(p => p.id === id);
+            document.getElementById('detail-title').innerText = selectedProduct.name;
+            document.getElementById('detail-desc').innerText = selectedProduct.description;
+            document.getElementById('detail-img').src = selectedProduct.image_url;
+
+            // توليد الخانات المطلوبة ديناميكياً
+            const fieldsDiv = document.getElementById('dynamic-fields');
+            fieldsDiv.innerHTML = "";
+            if (selectedProduct.required_fields) {
+                selectedProduct.required_fields.split(',').forEach(f => {
+                    fieldsDiv.innerHTML += `
+                        <div class="input-group">
+                            <label>${f.trim()}</label>
+                            <input type="text" class="custom-input prod-req" placeholder="أدخل ${f.trim()}">
+                        </div>`;
+                });
+            }
+
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('details-page').classList.add('active-page');
+        }
+
+        function goBack() {
+            document.getElementById('details-page').classList.remove('active-page');
+            document.getElementById('home-page').style.display = 'block';
+            document.getElementById('main-header').style.display = 'flex';
         }
 
         function addToCart() {
-            let user = document.getElementById('user-id').value;
-            if(!user) return tg.showAlert("يرجى إدخال معلومات حسابك لتسهيل الخدمة.");
-            
-            cart.push({...currentP, qty, user});
-            document.getElementById('cart-count').innerText = `لديك (${cart.length}) منتجات في السلة`;
-            showPage('home');
-            tg.HapticFeedback.notificationOccurred('success');
-        }
-
-        function updateMainButton() {
-            if (cart.length > 0 && document.getElementById('home').classList.contains('active')) {
-                tg.MainButton.setText(`إرسال الطلب الكلي (${cart.length}) 🚀`);
-                tg.MainButton.show();
-            } else {
-                tg.MainButton.hide();
+            const inputs = document.querySelectorAll('.prod-req');
+            let customerData = [];
+            for (let input of inputs) {
+                if (!input.value) return tg.showAlert("يرجى ملء جميع البيانات المطلوبة!");
+                customerData.push(input.value);
             }
-        }
 
-        // معالجة الإرسال النهائي
-        tg.MainButton.onClick(async () => {
-            tg.MainButton.showProgress();
-            
-            let user = tg.initDataUnsafe.user;
-            let userLink = user.username ? `https://t.me/${user.username}` : `tg://user?id=${user.id}`;
-            
-            let summary = `<b>📦 طلب جديد مجمع</b>\n`;
-            summary += `👤 <b>العميل:</b> ${user.first_name}\n`;
-            summary += `🔗 <b>الرابط:</b> ${userLink}\n`;
-            summary += `────────────────────\n`;
-            
-            cart.forEach((item, index) => {
-                summary += `<b>${index + 1}- ${item.name}</b>\n`;
-                summary += `🔹 الكمية: ${item.qty}\n`;
-                summary += `🆔 الحساب: <code>${item.user}</code>\n\n`;
+            cart.push({
+                name: selectedProduct.name,
+                price: selectedProduct.price,
+                data: customerData.join(' | ')
             });
 
-            try {
-                const res = await fetch('/api/send', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ message: summary })
-                });
-                
-                if(res.ok) {
-                    tg.showAlert("✅ وصل طلبك بنجاح! سيتم التواصل معك قريباً.");
-                    cart = []; 
-                    tg.close();
-                } else {
-                    tg.showAlert("❌ حدث خطأ في النظام، يرجى المحاولة لاحقاً.");
-                }
-            } catch(e) {
-                tg.showAlert("❌ فشل الاتصال بالخادم.");
+            tg.MainButton.setText(`إرسال الطلب (${cart.length}) 🚀`);
+            tg.MainButton.show();
+            goBack();
+        }
+
+        tg.MainButton.onClick(async () => {
+            tg.MainButton.showProgress();
+            let user = tg.initDataUnsafe.user;
+            let text = `📦 <b>طلب جديد!</b>\n👤 العميل: ${user?.first_name} (@${user?.username})\n`;
+            
+            cart.forEach((item, i) => {
+                text += `\n${i+1}- ${item.name} (${item.price}$)\n📝 بيانات: ${item.data}\n`;
+            });
+
+            const res = await fetch('/api/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (res.ok) {
+                tg.showAlert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
+                tg.close();
+            } else {
+                tg.showAlert("فشل إرسال الطلب، حاول مجدداً.");
+                tg.MainButton.hideProgress();
             }
-            tg.MainButton.hideProgress();
         });
+
+        init();
     </script>
 </body>
 </html>
