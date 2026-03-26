@@ -13,8 +13,7 @@
         
         /* شاشة الصيانة / الحماية */
         #maintenance-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #2c3e50; color: white; text-align: center; padding: 20px; box-sizing: border-box; }
-        .lock-icon { font-size: 80px; margin-bottom: 20px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .lock-icon { font-size: 80px; margin-bottom: 20px; }
 
         /* الهيكل الرئيسي */
         #main-content { display: none; }
@@ -46,9 +45,103 @@
 
     <div id="maintenance-screen">
         <div class="lock-icon">🔒</div>
-        <h2 id="m-title">المتجر قيد التجهيز</h2>
-        <p>عذراً، هذا المتجر متاح حالياً للمطورين والمختبرين فقط.</p>
+        <h2>المتجر قيد التجهيز</h2>
+        <p>عذراً، هذا المتجر متاح حالياً للمصرح لهم فقط.</p>
         <div id="user-id-box" style="margin-top:20px; padding:10px 20px; background:rgba(255,255,255,0.1); border-radius:10px; font-size:13px; color:#bdc3c7;">
             جاري جلب معرفك...
         </div>
     </div>
+
+    <div id="main-content">
+        <div class="header">
+            <h1 id="store-title-ui">...</h1>
+        </div>
+        <div class="products-grid" id="products-list"></div>
+    </div>
+
+    <div id="detail-page" class="page">
+        <div id="detail-container"></div>
+    </div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    let allProducts = [], selectedProduct = {};
+
+    async function init() {
+        const user = tg.initDataUnsafe.user;
+        const userIdBox = document.getElementById('user-id-box');
+        
+        // عرض الـ ID للمستخدم حتى لو لم يكن مسموحاً له لكي يرسله للأدمن
+        if(user) userIdBox.innerText = "معرف التلجرام الخاص بك: " + user.id;
+
+        try {
+            // جلب كامل قائمة الـ Whitelist للتأكد
+            const { data: whitelist, error } = await _supabase
+                .from('whitelist')
+                .select('telegram_id');
+
+            // فحص هل الـ ID الخاص بالمستخدم موجود في المصفوفة؟
+            const isAllowed = whitelist && whitelist.some(item => String(item.telegram_id) === String(user ? user.id : '0'));
+
+            if (error || !isAllowed) {
+                document.getElementById('maintenance-screen').style.display = 'flex';
+                document.getElementById('main-content').style.display = 'none';
+                return;
+            }
+
+            // إذا كان مسموحاً له، نفتح المتجر
+            document.getElementById('maintenance-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('store-title-ui').innerText = CONFIG.STORE_NAME;
+
+            loadProducts();
+
+        } catch (err) {
+            console.error("Auth Error:", err);
+            document.getElementById('maintenance-screen').style.display = 'flex';
+        }
+    }
+
+    async function loadProducts() {
+        const { data } = await _supabase.from('products').select('*').eq('status', 'active').order('id', { ascending: false });
+        if (!data) return;
+        allProducts = data;
+        
+        document.getElementById('products-list').innerHTML = data.map(p => `
+            <div class="product-card" onclick="openProduct(${p.id})">
+                <img src="${p.image_url || 'https://via.placeholder.com/150'}">
+                <div class="product-info">
+                    <h3>${p.name}</h3>
+                    <span class="product-price">${p.price}${CONFIG.CURRENCY}</span>
+                </div>
+            </div>`).join('');
+    }
+
+    function openProduct(id) {
+        selectedProduct = allProducts.find(p => p.id === id);
+        const container = document.getElementById('detail-container');
+        
+        container.innerHTML = `
+            <img src="${selectedProduct.image_url}" class="detail-img">
+            <div class="detail-card">
+                <h2>${selectedProduct.name}</h2>
+                <p style="color:#7f8c8d; font-size:14px;">${selectedProduct.description || ''}</p>
+                <div class="input-group" id="dynamic-fields"></div>
+                <button class="btn-back" onclick="closeProduct()">العودة للمتجر</button>
+            </div>`;
+
+        const fields = selectedProduct.required_fields ? selectedProduct.required_fields.split(',') : [];
+        fields.forEach(f => {
+            document.getElementById('dynamic-fields').innerHTML += `<input type="text" placeholder="أدخل ${f.trim()}" class="product-user-input">`;
+        });
+
+        document.getElementById('detail-page').classList.add('active-page');
+        tg.MainButton.setText("تأكيد الطلب ✅").show();
+    }
+
+    function closeProduct() {
+        document.getElementById('detail-page').classList.remove('active-page');
+        tg.MainButton.hide();
