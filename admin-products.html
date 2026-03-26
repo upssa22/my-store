@@ -2,195 +2,219 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة المقر الملكي | المنتجات والحقول</title>
+    <title>المقر الملكي | الإدارة المتقدمة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal: #1e293b; --gold: #c5a059; --danger: #ef4444; --bg: #f1f5f9; }
+        :root { --royal: #1e293b; --gold: #c5a059; --accent: #3b82f6; --bg: #f1f5f9; }
         body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
-        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1100px; margin: 20px auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; padding: 0 20px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; }
+        .container { max-width: 1200px; margin: 20px auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; padding: 0 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
-        .btn-main { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .btn-main:hover { background: #334155; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-blue { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .btn-gold { background: var(--gold); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
 
-        /* منطقة الحقول الديناميكية */
-        .fields-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; margin: 15px 0; }
-        .field-tag { display: inline-flex; align-items: center; background: var(--royal); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin: 5px; }
-        .field-tag span { margin-right: 8px; cursor: pointer; color: var(--gold); font-weight: bold; }
+        /* ستايل الحقول الديناميكية */
+        .dynamic-field-row { background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 10px; position: relative; }
+        .remove-field { position: absolute; top: 5px; left: 5px; color: red; cursor: pointer; font-size: 18px; }
 
         /* قائمة المنتجات */
-        .p-list-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .p-list-item img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
-        .p-info { flex: 1; }
-        .p-actions { display: flex; gap: 8px; }
-        .btn-action { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        .edit-btn { background: #3b82f6; color: white; }
-        .del-btn { background: var(--danger); color: white; }
+        .product-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #eee; }
+        .product-item img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
+        .cat-badge { background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; }
         
-        #p-preview { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid #ddd; display: none; }
+        .tab-btn { padding: 10px 20px; border: none; background: #ddd; cursor: pointer; border-radius: 10px 10px 0 0; }
+        .tab-btn.active { background: white; border-bottom: 2px solid var(--gold); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="admin-header">
-    <h1>📦 إدارة المنتجات الملكية</h1>
-    <button onclick="location.href='admin.html'" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:20px; cursor:pointer; margin-top:10px;">العودة للرئيسية</button>
+    <h1>👑 إدارة المقر الملكي المتقدمة</h1>
+    <div style="margin-top:10px;">
+        <button onclick="location.href='admin.html'" style="color:white; background:none; border:1px solid white; padding:5px 15px; border-radius:20px; cursor:pointer;">العودة للرئيسية</button>
+    </div>
 </div>
 
 <div class="container">
-    <div class="card">
-        <h3 id="form-title">➕ إضافة منتج جديد</h3>
-        <input type="hidden" id="edit-id">
-        
-        <input type="text" id="p-name" placeholder="اسم المنتج">
-        <input type="number" id="p-price" placeholder="السعر بالدولار">
-
-        <div style="border: 2px dashed var(--gold); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; background: #fffcf5;" onclick="document.getElementById('file-input').click()">
-            <span id="u-status">🖼️ اضغط لرفع صورة المنتج</span>
-            <input type="file" id="file-input" hidden accept="image/*" onchange="handleImageUpload(this)">
+    <aside>
+        <div class="card">
+            <h3>📂 إدارة الأقسام</h3>
+            <input type="text" id="new-cat-name" placeholder="اسم القسم الجديد">
+            <button class="btn-blue" onclick="addCategory()">+ إضافة قسم</button>
+            <div id="cats-list" style="margin-top: 15px;"></div>
         </div>
-        <input type="hidden" id="p-img-url">
-        <img id="p-preview">
+    </aside>
 
-        <div class="fields-box">
-            <b>📍 البيانات المطلوبة من الزبون:</b>
-            <div id="selected-fields" style="margin: 10px 0;"></div>
-            <select onchange="addNewField(this.value); this.value=''">
-                <option value="">+ اختر حقل بيانات إضافي</option>
-                <option value="اسم اللاعب">اسم اللاعب (In-game Name)</option>
-                <option value="رقم الـ ID">رقم الـ ID</option>
-                <option value="رابط الحساب">رابط الحساب (Profile Link)</option>
-                <option value="اسم الكرت المطلوب">اسم الكرت المطلوب</option>
-                <option value="اسم المجموعة">اسم المجموعة (Set Name)</option>
+    <main>
+        <div class="card">
+            <h3 id="form-title">➕ إضافة / تعديل منتج</h3>
+            <input type="hidden" id="edit-id">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="text" id="p-name" placeholder="اسم المنتج">
+                <input type="number" id="p-price" placeholder="السعر ($)">
+            </div>
+
+            <select id="p-category">
+                <option value="">-- اختر القسم --</option>
             </select>
+
+            <div style="border: 2px dashed var(--gold); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; background: #fffcf5;" onclick="document.getElementById('file-input').click()">
+                <span id="u-status">🖼️ رفع صورة المنتج</span>
+                <input type="file" id="file-input" hidden onchange="uploadImg(this)">
+            </div>
+            <input type="hidden" id="p-img">
+
+            <div style="margin-top: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b>🛠️ الحقول المطلوبة من الزبون:</b>
+                    <button onclick="addNewFieldRow()" style="background:var(--royal); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">+ أضف حقل</button>
+                </div>
+                <div id="dynamic-fields-container" style="margin-top:10px;">
+                    </div>
+            </div>
+
+            <button class="btn-gold" id="save-btn" onclick="saveProduct()">حفظ المنتج ونشره ✅</button>
+            <button id="cancel-btn" onclick="resetForm()" style="display:none; width:100%; background:none; border:none; color:red; margin-top:10px; cursor:pointer;">إلغاء التعديل</button>
         </div>
 
-        <button class="btn-main" id="save-btn" onclick="processProduct()">حفظ المنتج في المتجر ✅</button>
-        <button id="cancel-btn" onclick="resetUI()" style="display:none; width:100%; background:none; border:none; color:red; margin-top:10px; cursor:pointer;">إلغاء التعديل</button>
-    </div>
-
-    <div id="list-container">
-        <h3>📋 المنتجات المعروضة حالياً</h3>
         <div id="products-render">
-            <p style="color:#888;">جاري تحميل المنتجات...</p>
-        </div>
-    </div>
+            <h3>📦 قائمة المنتجات</h3>
+            </div>
+    </main>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-    let currentFields = [];
 
-    // 1. إدارة الحقول الديناميكية
-    function addNewField(val) {
-        if(!val || currentFields.includes(val)) return;
-        currentFields.push(val);
-        renderFieldTags();
-    }
-
-    function removeFieldTag(val) {
-        currentFields = currentFields.filter(f => f !== val);
-        renderFieldTags();
-    }
-
-    function renderFieldTags() {
-        const box = document.getElementById('selected-fields');
-        box.innerHTML = currentFields.map(f => `
-            <div class="field-tag">${f} <span onclick="removeFieldTag('${f}')">✕</span></div>
-        `).join('');
-    }
-
-    // 2. رفع الصور للمخزن
-    async function handleImageUpload(input) {
-        const file = input.files[0];
-        if(!file) return;
-        document.getElementById('u-status').innerText = "جاري الرفع... ⏳";
+    // --- 1. نظام الأقسام ---
+    async function loadCategories() {
+        const { data } = await _supabase.from('categories').select('*').order('id');
+        const list = document.getElementById('cats-list');
+        const select = document.getElementById('p-category');
         
-        const name = `prod_${Date.now()}.png`;
-        const { data, error } = await _supabase.storage.from('store-assets').upload(name, file);
+        list.innerHTML = '';
+        select.innerHTML = '<option value="">-- اختر القسم --</option>';
         
-        if(!error) {
-            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(name);
-            document.getElementById('p-img-url').value = publicUrl;
-            document.getElementById('p-preview').src = publicUrl;
-            document.getElementById('p-preview').style.display = 'block';
-            document.getElementById('u-status').innerText = "تم الرفع بنجاح ✅";
+        data?.forEach(cat => {
+            list.innerHTML += `
+                <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;">
+                    <span>${cat.name}</span>
+                    <span onclick="deleteCat(${cat.id})" style="color:red; cursor:pointer;">🗑️</span>
+                </div>`;
+            select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+        });
+    }
+
+    async function addCategory() {
+        const name = document.getElementById('new-cat-name').value;
+        if(!name) return;
+        await _supabase.from('categories').insert([{ name }]);
+        document.getElementById('new-cat-name').value = '';
+        loadCategories();
+    }
+
+    async function deleteCat(id) {
+        if(confirm("سيتم حذف القسم فقط، المنتجات ستبقى بدون قسم. موافق؟")) {
+            await _supabase.from('categories').delete().eq('id', id);
+            loadCategories();
         }
     }
 
-    // 3. معالجة الحفظ (إضافة أو تعديل)
-    async function processProduct() {
+    // --- 2. نظام الحقول الديناميكية ---
+    function addNewFieldRow(data = { label: '', type: 'text', placeholder: '' }) {
+        const container = document.getElementById('dynamic-fields-container');
+        const div = document.createElement('div');
+        div.className = 'dynamic-field-row';
+        div.innerHTML = `
+            <span class="remove-field" onclick="this.parentElement.remove()">×</span>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <input type="text" class="f-label" placeholder="اسم الحقل (مثال: اسم اللاعب)" value="${data.label}">
+                <select class="f-type">
+                    <option value="text" ${data.type === 'text' ? 'selected' : ''}>نص عادي</option>
+                    <option value="number" ${data.type === 'number' ? 'selected' : ''}>أرقام فقط</option>
+                    <option value="url" ${data.type === 'url' ? 'selected' : ''}>رابط (Link)</option>
+                </select>
+            </div>
+            <input type="text" class="f-placeholder" placeholder="نص توضيحي للزبون (مثال: يبدأ بـ #)" value="${data.placeholder}">
+        `;
+        container.appendChild(div);
+    }
+
+    // --- 3. إدارة المنتجات ---
+    async function uploadImg(input) {
+        const file = input.files[0];
+        document.getElementById('u-status').innerText = "جاري الرفع...";
+        const name = `p_${Date.now()}.png`;
+        const { data } = await _supabase.storage.from('store-assets').upload(name, file);
+        const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(name);
+        document.getElementById('p-img').value = publicUrl;
+        document.getElementById('u-status').innerText = "تم الرفع ✅";
+    }
+
+    async function saveProduct() {
         const id = document.getElementById('edit-id').value;
-        const name = document.getElementById('p-name').value;
-        const price = document.getElementById('p-price').value;
-        const img = document.getElementById('p-img-url').value;
+        const fieldRows = document.querySelectorAll('.dynamic-field-row');
+        const fields = Array.from(fieldRows).map(row => ({
+            label: row.querySelector('.f-label').value,
+            type: row.querySelector('.f-type').value,
+            placeholder: row.querySelector('.f-placeholder').value
+        }));
 
-        if(!name || !price || !img) return alert("أكمل البيانات والصورة!");
-
-        const productData = {
-            name, price: parseFloat(price), image_url: img, 
-            required_fields: currentFields, status: 'active'
+        const payload = {
+            name: document.getElementById('p-name').value,
+            price: document.getElementById('p-price').value,
+            category: document.getElementById('p-category').value,
+            image_url: document.getElementById('p-img').value,
+            required_fields: fields,
+            status: 'active'
         };
 
-        let result;
-        if(id) {
-            result = await _supabase.from('products').update(productData).eq('id', id);
-        } else {
-            result = await _supabase.from('products').insert([productData]);
-        }
-
-        if(!result.error) { alert("تمت العملية بنجاح!"); location.reload(); }
-        else { alert("حدث خطأ: " + result.error.message); }
-    }
-
-    // 4. الحذف والتعديل
-    async function deleteItem(id) {
-        if(!confirm("هل أنت متأكد من الحذف؟")) return;
-        await _supabase.from('products').delete().eq('id', id);
+        if(id) await _supabase.from('products').update(payload).eq('id', id);
+        else await _supabase.from('products').insert([payload]);
+        
         location.reload();
     }
 
-    function startEdit(p) {
-        document.getElementById('form-title').innerText = "📝 تعديل المنتج";
+    async function loadProducts() {
+        const { data } = await _supabase.from('products').select('*').order('id', {ascending:false});
+        const render = document.getElementById('products-render');
+        render.innerHTML = '<h3>📦 قائمة المنتجات</h3>';
+        data?.forEach(p => {
+            render.innerHTML += `
+                <div class="product-item">
+                    <img src="${p.image_url}">
+                    <div style="flex:1">
+                        <b>${p.name}</b> <span class="cat-badge">${p.category || 'بدون قسم'}</span><br>
+                        <small>${p.price}$</small>
+                    </div>
+                    <button onclick='editP(${JSON.stringify(p)})'>تعديل</button>
+                    <button onclick='deleteP(${p.id})' style="color:red;">حذف</button>
+                </div>`;
+        });
+    }
+
+    function editP(p) {
         document.getElementById('edit-id').value = p.id;
         document.getElementById('p-name').value = p.name;
         document.getElementById('p-price').value = p.price;
-        document.getElementById('p-img-url').value = p.image_url;
-        document.getElementById('p-preview').src = p.image_url;
-        document.getElementById('p-preview').style.display = 'block';
-        currentFields = p.required_fields || [];
-        renderFieldTags();
+        document.getElementById('p-category').value = p.category || '';
+        document.getElementById('p-img').value = p.image_url;
+        document.getElementById('dynamic-fields-container').innerHTML = '';
+        (p.required_fields || []).forEach(f => addNewFieldRow(f));
+        document.getElementById('form-title').innerText = "📝 تعديل المنتج";
         document.getElementById('cancel-btn').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0,0);
     }
 
-    function resetUI() { location.reload(); }
+    async function deleteP(id) { if(confirm("حذف المنتج؟")) { await _supabase.from('products').delete().eq('id', id); loadProducts(); } }
+    function resetForm() { location.reload(); }
 
-    // 5. تحميل القائمة
-    async function fetchList() {
-        const { data } = await _supabase.from('products').select('*').order('id', {ascending: false});
-        const container = document.getElementById('products-render');
-        if(!data || data.length === 0) { container.innerHTML = "لا يوجد منتجات."; return; }
-
-        container.innerHTML = data.map(p => `
-            <div class="p-list-item">
-                <img src="${p.image_url}">
-                <div class="p-info">
-                    <b>${p.name}</b><br>
-                    <small>${p.price}${CONFIG.CURRENCY}</small>
-                </div>
-                <div class="p-actions">
-                    <button class="btn-action edit-btn" onclick='startEdit(${JSON.stringify(p)})'>تعديل</button>
-                    <button class="btn-action del-btn" onclick="deleteItem(${p.id})">حذف</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    fetchList();
+    loadCategories();
+    loadProducts();
 </script>
 </body>
 </html>
