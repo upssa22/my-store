@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة المسموح لهم | ون بيس</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --dark: #2c3e50; --main: #3498db; --bg: #f4f7f6; --danger: #e74c3c; }
+        body { margin: 0; font-family: system-ui; background: var(--bg); direction: rtl; }
+        .admin-header { background: var(--dark); color: white; padding: 25px 0; text-align: center; }
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .btn { background: var(--main); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
+        .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="admin-header">
+    <h1 onclick="location.href='admin.html'" style="cursor:pointer; margin:0;">متجر ون بيس</h1>
+    <div style="margin-top:10px;"><a href="admin.html" style="color:#bdc3c7; text-decoration:none;">الرئيسية</a> / <span>القائمة البيضاء 🛡️</span></div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>🛡️ إضافة شخص لتجربة البوت</h2>
+        <p style="font-size: 13px; color: #666;">الأشخاص المضافون هنا هم فقط من سيفتح معهم المتجر في تلجرام.</p>
+        <input type="number" id="w-id" placeholder="أدخل ID التلجرام (رقم)">
+        <input type="text" id="w-name" placeholder="اسم الشخص (للمعرفة فقط)">
+        <button class="btn" onclick="addToWhitelist()">إضافة للقائمة +</button>
+
+        <table>
+            <thead><tr><th>الاسم</th><th>الـ ID</th><th>إجراء</th></tr></thead>
+            <tbody id="whitelist-table"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function loadWhitelist() {
+        const { data } = await _supabase.from('whitelist').select('*').order('created_at', {ascending: false});
+        document.getElementById('whitelist-table').innerHTML = data.map(w => `
+            <tr>
+                <td>${w.full_name}</td>
+                <td>${w.telegram_id}</td>
+                <td><button class="btn-del" onclick="remove(${w.id})">حذف</button></td>
+            </tr>`).join('');
+    }
+
+    async function addToWhitelist() {
+        const tid = document.getElementById('w-id').value;
+        const name = document.getElementById('w-name').value;
+        if(!tid) return alert("يرجى إدخال الـ ID");
+
+        const { error } = await _supabase.from('whitelist').insert([{ telegram_id: tid, full_name: name }]);
+        if(error) alert("هذا الشخص مضاف بالفعل أو هناك خطأ.");
+        else { document.getElementById('w-id').value = ''; document.getElementById('w-name').value = ''; loadWhitelist(); }
+    }
+
+    async function remove(id) {
+        if(confirm("هل تريد إزالة هذا الشخص؟ لن يتمكن من فتح المتجر.")) {
+            await _supabase.from('whitelist').delete().eq('id', id);
+            loadWhitelist();
+        }
+    }
+    loadWhitelist();
+</script>
+</body>
+</html>
