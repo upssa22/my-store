@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch';
 
+// إعداد السوبابيز (تأكد أن المفاتيح مضافة في Vercel)
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 export default async function handler(req, res) {
@@ -8,41 +8,47 @@ export default async function handler(req, res) {
     const BOT_TOKEN = process.env.TELEGRAM_TOKEN;
 
     try {
-        // 1. جلب إعدادات الصيانة من قاعدة البيانات
+        // 1. جلب حالة الصيانة والنص من قاعدة البيانات
         const { data: settings } = await supabase.from('store_settings').select('*').eq('id', 1).single();
-        const isMaintenance = settings && settings.maintenance_mode;
-        const maintenanceText = settings?.maintenance_text || "⚠️ المقر الملكي في صيانة حالياً، سنعود قريباً!";
+        const isMaintenance = settings?.maintenance_mode;
+        const maintenanceText = settings?.maintenance_text || "⚠️ المقر في صيانة حالياً.";
 
         // 2. إذا كان الزبون يرسل رسالة نصية (Direct Message) والصيانة مفعلة
-        if (update.message && update.message.text && isMaintenance) {
+        if (update && update.message && isMaintenance) {
             const chatId = update.message.chat.id;
 
-            // إرسال رسالة "المقر متعطل" فوراً للزبون
+            // أمر إرسال الرد للعميل (أهم جزء)
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    text: `👑 **رسالة إدارية مؤقتة** 👑\n\n${maintenanceText}\n\nنعتذر عن استقبال أي طلبات أو رسائل حالياً. ✨`,
+                    text: `👑 **المقر الملكي للشحن** 👑\n\n${maintenanceText}\n\nيرجى الانتظار لحين الافتتاح الرسمي. ✨`,
                     parse_mode: 'Markdown'
                 })
             });
 
-            // ننهي العملية هنا لكي لا يصلك إشعار
+            // ننهي العملية هنا لكي لا يصلك إشعار بالرسالة
             return res.status(200).send('OK');
         }
 
-        // 3. إذا كان الطلب قادماً من "المتجر" (WebApp) والصيانة مفعلة
-        if (req.method === 'POST' && req.body.product && isMaintenance) {
-            return res.status(503).json({ success: false, message: maintenanceText });
+        // 3. إذا كان المتجر مفتوحاً (FALSE) أرسل الطلبات للأدمن كالمعتاد
+        if (req.method === 'POST' && req.body.product && !isMaintenance) {
+            const { product, price, customer_data } = req.body;
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: process.env.TELEGRAM_CHAT_ID,
+                    text: `📦 طلب جديد: ${product}\n💰 السعر: ${price}\n👤 البيانات: ${customer_data}`
+                })
+            });
+            return res.status(200).json({ success: true });
         }
 
-        // --- (بقية الكود الخاص بإرسال الطلبات الحقيقية للأدمن) ---
-        // في حالة الصيانة معطلة، يتم إرسال الطلب لك بشكل طبيعي
-        
         res.status(200).send('OK');
     } catch (error) {
-        console.error("Error:", error);
-        res.status(500).send('Internal Server Error');
+        console.error(error);
+        res.status(500).send('Error');
     }
 }
