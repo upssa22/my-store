@@ -3,301 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Monopoly Store | المتجر الاحترافي</title>
+    <title>متجر مونوپولي 💎</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root {
-            --primary: #0088cc;
-            --secondary: #31b545;
-            --bg: #f0f2f5;
-            --text-main: #222;
-            --text-sub: #666;
-            --white: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            color: var(--text-main);
-            user-select: none;
-        }
-
-        /* الهيدر المطور */
-        .header {
-            background: var(--white);
-            padding: 20px;
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .user-info b { font-size: 18px; color: var(--primary); }
-        .points-box {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-weight: bold;
-            color: #d81b60;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        /* نظام الأقسام (Categories) */
-        .categories-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 15px 10px;
-            gap: 10px;
-            scrollbar-width: none;
-        }
-        .categories-container::-webkit-scrollbar { display: none; }
-        
-        .cat-btn {
-            background: var(--white);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: 600;
-            white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            color: var(--text-sub);
-        }
-        .cat-btn.active {
-            background: var(--primary);
-            color: var(--white);
-        }
-
-        /* شبكة المنتجات */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            padding: 15px;
-        }
-
-        .product-card {
-            background: var(--white);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            position: relative;
-        }
-        .product-card:active { transform: scale(0.95); }
-        .product-card img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-        }
-        .product-card-body { padding: 12px; text-align: center; }
-        .product-card-body h3 { margin: 5px 0; font-size: 14px; height: 34px; overflow: hidden; }
-        .price-badge {
-            background: #e3f2fd;
-            color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        /* صفحات تفاصيل المنتج */
-        .page { display: none; padding: 20px; }
-        .active-page { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .details-card {
-            background: var(--white);
-            border-radius: 30px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .input-group { margin: 15px 0; text-align: right; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--text-sub); font-size: 13px; }
-        .custom-input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 15px;
-            border: 1.5px solid #eee;
-            box-sizing: border-box;
-            background: #fafafa;
-            font-size: 16px;
-        }
-        .buy-button {
-            background: var(--secondary);
-            color: var(--white);
-            border: none;
-            width: 100%;
-            padding: 18px;
-            border-radius: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-            cursor: pointer;
-        }
+        :root { --main: #0088cc; --sub: #31b545; --bg: #f0f2f5; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        .header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .badge { background: #fff3cd; color: #856404; padding: 5px 12px; border-radius: 50px; font-weight: bold; }
+        .cats { display: flex; overflow-x: auto; padding: 15px 10px; gap: 8px; scrollbar-width: none; }
+        .cat-btn { background: white; border: none; padding: 8px 15px; border-radius: 50px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .cat-btn.active { background: var(--main); color: white; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; }
+        .card img { width: 100%; height: 110px; object-fit: cover; }
+        .card h3 { font-size: 13px; margin: 8px 0; }
+        .price { color: var(--sub); font-weight: bold; margin-bottom: 8px; display: block; }
+        .page { display: none; padding: 15px; animation: slideUp 0.3s; }
+        .active-page { display: block; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .details-card { background: white; border-radius: 25px; padding: 20px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 1px solid #eee; box-sizing: border-box; }
+        .btn-buy { background: var(--sub); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-size: 18px; font-weight: bold; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; margin: 15px 0; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
-    <div class="header" id="main-header">
-        <div class="user-info">أهلاً، <b id="user-name">...</b> 👋</div>
-        <div class="points-box">💰 <span id="points-val">0</span> نرد</div>
+    <div class="header" id="h-main">
+        <div>أهلاً، <b id="u-name">...</b> 👋</div>
+        <div class="badge">🎲 <span id="u-points">0</span> نرد</div>
     </div>
 
-    <div id="home-page" class="page active-page">
-        <div class="categories-container" id="cats-bar">
-            </div>
-        <div class="products-grid" id="products-list">
-            <p style="text-align: center; grid-column: span 2;">جاري تحميل المنتجات...</p>
-        </div>
+    <div id="home" class="page active-page">
+        <div class="cats" id="cat-list"></div>
+        <div class="grid" id="prod-list">جاري التحميل...</div>
     </div>
 
-    <div id="details-page" class="page">
+    <div id="details" class="page">
         <div class="details-card">
-            <img id="detail-img" style="width: 100%; height: 200px; object-fit: cover; border-radius: 20px;">
-            <h2 id="detail-title"></h2>
-            <p id="detail-desc" style="color: var(--text-sub);"></p>
-            
-            <div id="dynamic-fields"></div>
-            
-            <button class="buy-button" onclick="addToCart()">إضافة للسلة 🛒</button>
-            <button onclick="goBack()" style="background:none; border:none; color:#888; margin-top:20px;">← العودة للمتجر</button>
+            <img id="d-img" style="width: 100%; border-radius: 15px; height: 180px; object-fit: cover;">
+            <div id="d-video"></div> <h2 id="d-title"></h2>
+            <p id="d-desc" style="color: #666; font-size: 14px;"></p>
+            <div id="d-inputs"></div>
+            <button class="btn-buy" onclick="addToCart()">إضافة للسلة 🛒</button>
+            <button onclick="goHome()" style="background:none; border:none; color:gray; margin-top:15px;">العودة للمتجر</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
 
-        // ⚠️ إعدادات الربط
         const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
-        const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
+        const S_KEY = 'أدخل_مفتاح_ANON_هنا';
         const _supabase = supabase.createClient(S_URL, S_KEY);
 
-        let allProducts = [], cart = [], selectedProduct = {};
+        let allProds = [], cart = [], currentP = {};
 
         async function init() {
-            document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "لاعب";
-            
-            // جلب المنتجات
-            let { data, error } = await _supabase.from('products').select('*');
-            if (error) return alert("خطأ في الربط!");
-            
-            allProducts = data;
-            renderCategories();
-            renderProducts(data);
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('u-name').innerText = user?.first_name || "لاعب";
+
+            let { data: u } = await _supabase.from('users').select('*').eq('telegram_id', user.id).single();
+            if(!u) {
+                let { data: nx } = await _supabase.from('users').insert([{
+                    telegram_id: user.id, first_name: user.first_name, username: user.username
+                }]).select().single();
+                u = nx;
+            }
+            document.getElementById('u-points').innerText = u.points;
+
+            let { data: p } = await _supabase.from('products').select('*').eq('status', 'active');
+            allProds = p;
+            renderCats();
+            renderProds(p);
         }
 
-        function renderCategories() {
-            const bar = document.getElementById('cats-bar');
-            const uniqueCats = ['الكل', ...new Set(allProducts.map(p => p.category).filter(c => c))];
-            bar.innerHTML = uniqueCats.map(c => `
-                <button class="cat-btn ${c === 'الكل' ? 'active' : ''}" onclick="filterProducts('${c}', this)">${c}</button>
-            `).join('');
+        function renderCats() {
+            const list = ['الكل', ...new Set(allProds.map(i => i.category))];
+            document.getElementById('cat-list').innerHTML = list.map(c => `
+                <button class="cat-btn" onclick="filterCat('${c}', this)">${c}</button>`).join('');
         }
 
-        function renderProducts(list) {
-            const grid = document.getElementById('products-list');
-            grid.innerHTML = list.map(p => `
-                <div class="product-card" onclick="showProduct(${p.id})">
-                    <img src="${p.image_url}">
-                    <div class="product-card-body">
-                        <h3>${p.name}</h3>
-                        <div class="price-badge">${p.price}$</div>
-                    </div>
-                </div>
-            `).join('');
+        function renderProds(data) {
+            document.getElementById('prod-list').innerHTML = data.map(i => `
+                <div class="card" onclick="openDetails(${i.id})">
+                    <img src="${i.image_url}">
+                    <div style="padding:8px;"><h3>${i.name}</h3><span class="price">${i.price}$</span></div>
+                </div>`).join('');
         }
 
-        function filterProducts(cat, btn) {
+        function filterCat(c, btn) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const filtered = cat === 'الكل' ? allProducts : allProducts.filter(p => p.category === cat);
-            renderProducts(filtered);
+            renderProds(c === 'الكل' ? allProds : allProds.filter(i => i.category === c));
         }
 
-        function showProduct(id) {
-            selectedProduct = allProducts.find(p => p.id === id);
-            document.getElementById('detail-title').innerText = selectedProduct.name;
-            document.getElementById('detail-desc').innerText = selectedProduct.description;
-            document.getElementById('detail-img').src = selectedProduct.image_url;
+        function openDetails(id) {
+            currentP = allProds.find(i => i.id === id);
+            document.getElementById('d-title').innerText = currentP.name;
+            document.getElementById('d-img').src = currentP.image_url;
+            
+            // تحويل رابط اليوتيوب لفيديو
+            const vidDiv = document.getElementById('d-video');
+            vidDiv.innerHTML = "";
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = currentP.description.match(ytRegex);
+            if(match) {
+                vidDiv.innerHTML = `<div class="video-container"><iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe></div>`;
+                document.getElementById('d-desc').innerText = currentP.description.replace(ytRegex, '');
+            } else {
+                document.getElementById('d-desc').innerText = currentP.description;
+            }
 
-            // توليد الخانات المطلوبة ديناميكياً
-            const fieldsDiv = document.getElementById('dynamic-fields');
-            fieldsDiv.innerHTML = "";
-            if (selectedProduct.required_fields) {
-                selectedProduct.required_fields.split(',').forEach(f => {
-                    fieldsDiv.innerHTML += `
-                        <div class="input-group">
-                            <label>${f.trim()}</label>
-                            <input type="text" class="custom-input prod-req" placeholder="أدخل ${f.trim()}">
-                        </div>`;
+            const ins = document.getElementById('d-inputs');
+            ins.innerHTML = "";
+            if(currentP.required_fields) {
+                currentP.required_fields.split(',').forEach(f => {
+                    ins.innerHTML += `<input type="text" placeholder="أدخل ${f.trim()}" class="c-in">`;
                 });
             }
-
-            document.getElementById('home-page').style.display = 'none';
-            document.getElementById('main-header').style.display = 'none';
-            document.getElementById('details-page').classList.add('active-page');
+            showPage('details');
         }
 
-        function goBack() {
-            document.getElementById('details-page').classList.remove('active-page');
-            document.getElementById('home-page').style.display = 'block';
-            document.getElementById('main-header').style.display = 'flex';
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.getElementById(id).classList.add('active-page');
+            document.getElementById('h-main').style.display = (id==='home'?'flex':'none');
         }
+
+        function goHome() { showPage('home'); tg.MainButton.hide(); }
 
         function addToCart() {
-            const inputs = document.querySelectorAll('.prod-req');
-            let customerData = [];
-            for (let input of inputs) {
-                if (!input.value) return tg.showAlert("يرجى ملء جميع البيانات المطلوبة!");
-                customerData.push(input.value);
-            }
-
-            cart.push({
-                name: selectedProduct.name,
-                price: selectedProduct.price,
-                data: customerData.join(' | ')
-            });
-
-            tg.MainButton.setText(`إرسال الطلب (${cart.length}) 🚀`);
-            tg.MainButton.show();
-            goBack();
+            const vals = Array.from(document.querySelectorAll('.c-in')).map(v => v.value);
+            if(vals.some(v => !v)) return tg.showAlert("أكمل البيانات!");
+            cart.push({...currentP, data: vals.join(' | ')});
+            tg.MainButton.setText(`إرسال الطلب (${cart.length}) 🚀`).show();
+            goHome();
         }
 
         tg.MainButton.onClick(async () => {
             tg.MainButton.showProgress();
-            let user = tg.initDataUnsafe.user;
-            let text = `📦 <b>طلب جديد!</b>\n👤 العميل: ${user?.first_name} (@${user?.username})\n`;
-            
-            cart.forEach((item, i) => {
-                text += `\n${i+1}- ${item.name} (${item.price}$)\n📝 بيانات: ${item.data}\n`;
-            });
-
-            const res = await fetch('/api/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
-
-            if (res.ok) {
-                tg.showAlert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
-                tg.close();
-            } else {
-                tg.showAlert("فشل إرسال الطلب، حاول مجدداً.");
-                tg.MainButton.hideProgress();
+            let msg = `📦 <b>طلب جديد!</b>\n👤 العميل: ${tg.initDataUnsafe.user?.first_name}\n`;
+            for(let item of cart) {
+                msg += `\n- ${item.name} (${item.price}$)\n📝: ${item.data}\n`;
+                await _supabase.from('sales').insert([{
+                    product_name: item.name, price: item.price,
+                    customer_id: tg.initDataUnsafe.user.id, customer_name: tg.initDataUnsafe.user.first_name,
+                    details: item.data
+                }]);
             }
+            const res = await fetch('/api/send', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: msg })
+            });
+            if(res.ok) { tg.showAlert("تم الطلب بنجاح!"); tg.close(); }
         });
 
         init();
