@@ -5,7 +5,7 @@ const CONFIG = {
     SUPABASE_KEY: "sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q",
 
     // إعدادات المتجر العامة
-    STORE_NAME: "مونوپولي ستور",
+    STORE_NAME: "متجر ون بيس",
     POINTS_NAME: "نقاط ولاء", 
     CURRENCY: "$",
 
