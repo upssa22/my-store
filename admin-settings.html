@@ -2,97 +2,111 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إعدادات الواجهة الملكية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات المقر الملكي ⚙️</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal: #1a237e; --gold: #c5a059; --bg: #f5f6fa; }
-        body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
-        .admin-header { background: var(--royal); color: white; padding: 25px; text-align: center; border-bottom: 5px solid var(--gold); }
-        .container { max-width: 600px; margin: 20px auto; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        :root { --royal: #1e293b; --gold: #c5a059; --accent: #ef4444; --bg: #f1f5f9; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; color: #334155; }
         
-        .back-btn { position: fixed; top: 15px; left: 15px; background: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); max-width: 500px; margin: 20px auto; border: 1px solid #e2e8f0; }
+        h2 { text-align: center; color: var(--royal); margin-bottom: 25px; }
+
+        .status-box { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
         
-        .upload-zone { border: 3px dashed var(--gold); padding: 30px; text-align: center; border-radius: 15px; cursor: pointer; background: #fffcf5; margin: 20px 0; }
-        #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; border: 1px solid #ddd; }
+        /* تصميم زر التبديل Switch */
+        .switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--gold); }
+        input:checked + .slider:before { transform: translateX(30px); }
+
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: var(--royal); }
+        textarea, input[type="text"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 14px; background: #fff; }
+        textarea { height: 100px; resize: none; }
+
+        .btn-save { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 25px; transition: 0.3s; }
+        .btn-save:hover { background: #0f172a; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #64748b; text-decoration: none; font-size: 14px; }
         
-        .btn-save { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin: 10px 0; box-sizing: border-box; }
+        #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
-<button class="back-btn" onclick="location.href='admin.html'">⬅️ رجوع للوحة التحكم</button>
-
-<div class="admin-header">
-    <h1>🎨 مظهر المقر الملكي</h1>
-</div>
-
-<div class="container">
-    <div class="card">
-        <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-            <b>🔒 وضع الانتظار (إغلاق المتجر):</b>
-            <input type="checkbox" id="m-mode" style="width:25px; height:25px;">
+<div class="card">
+    <h2>👑 إعدادات المقر الملكي</h2>
+    
+    <div class="status-box">
+        <span><b>وضع الصيانة (إغلاق المتجر)</b></span>
+        <label class="switch">
+            <input type="checkbox" id="m-mode">
+            <span class="slider"></span>
         </label>
-
-        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-            <div id="u-text">🖼️ اضغط لرفع بانر "انتظرونا" المطور</div>
-            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
-        </div>
-
-        <img id="preview" src="">
-        <input type="hidden" id="img-url">
-
-        <label>📝 نص الرسالة للجمهور:</label>
-        <input type="text" id="m-text" placeholder="مثال: انتظرونا بحلة جديدة...">
-
-        <button class="btn-save" onclick="save()">حفظ ونشر التعديلات ✅</button>
     </div>
+
+    <label>💌 رسالة الصيانة للزبائن:</label>
+    <textarea id="m-text" placeholder="مثال: المقر مغلق حالياً للتطوير، سنعود قريباً.."></textarea>
+
+    <label>🖼️ رابط صورة الصيانة:</label>
+    <input type="text" id="m-image" placeholder="ضع رابط صورة (URL) هنا">
+    <img id="preview-img" src="">
+
+    <button class="btn-save" onclick="updateSettings()">حفظ التغييرات الملكية ✅</button>
+    
+    <a href="admin.html" class="back-link">⬅️ العودة للوحة الإدارة</a>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-    async function load() {
-        const { data } = await _supabase.from('store_settings').select('*').eq('id', 1).single();
-        if(data) {
-            document.getElementById('m-mode').checked = data.maintenance_mode;
-            document.getElementById('m-text').value = data.maintenance_text;
-            if(data.maintenance_image) {
-                document.getElementById('preview').src = data.maintenance_image;
-                document.getElementById('preview').style.display = 'block';
-                document.getElementById('img-url').value = data.maintenance_image;
-            }
-        }
-    }
-
-    async function uploadImage(input) {
-        const file = input.files[0];
-        if(!file) return;
-        document.getElementById('u-text').innerText = "جاري الرفع... ⏳";
+    // 1. تحميل الإعدادات عند فتح الصفحة
+    async function loadSettings() {
+        console.log("جاري جلب الإعدادات من المقر...");
+        const { data, error } = await _supabase.from('store_settings').select('*').eq('id', 1).single();
         
-        const fileName = `banner_${Date.now()}.png`;
-        const { data, error } = await _supabase.storage.from('store-assets').upload(fileName, file);
-
-        if(!error) {
-            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(fileName);
-            document.getElementById('img-url').value = publicUrl;
-            document.getElementById('preview').src = publicUrl;
-            document.getElementById('preview').style.display = 'block';
-            document.getElementById('u-text').innerText = "تم الرفع بنجاح ✅";
+        if (data) {
+            document.getElementById('m-mode').checked = data.maintenance_mode;
+            document.getElementById('m-text').value = data.maintenance_text || '';
+            document.getElementById('m-image').value = data.maintenance_image || '';
+            
+            if (data.maintenance_image) {
+                const img = document.getElementById('preview-img');
+                img.src = data.maintenance_image;
+                img.style.display = 'block';
+            }
+        } else if (error) {
+            console.error("خطأ في التحميل:", error);
         }
     }
 
-    async function save() {
-        await _supabase.from('store_settings').update({
-            maintenance_mode: document.getElementById('m-mode').checked,
-            maintenance_text: document.getElementById('m-text').value,
-            maintenance_image: document.getElementById('img-url').value
-        }).eq('id', 1);
-        alert("تم تحديث الواجهة بنجاح!");
+    // 2. تحديث الإعدادات في Supabase
+    async function updateSettings() {
+        const mode = document.getElementById('m-mode').checked;
+        const text = document.getElementById('m-text').value;
+        const image = document.getElementById('m-image').value;
+
+        const { error } = await _supabase
+            .from('store_settings')
+            .update({ 
+                maintenance_mode: mode, 
+                maintenance_text: text,
+                maintenance_image: image,
+                updated_at: new Date()
+            })
+            .eq('id', 1);
+
+        if (!error) {
+            alert("تم تحديث وضع المقر بنجاح! 👑");
+            location.reload(); // تحديث الصفحة لرؤية التغييرات
+        } else {
+            alert("خطأ في الحفظ: " + error.message);
+        }
     }
-    load();
+
+    loadSettings();
 </script>
 </body>
 </html>
