@@ -2,80 +2,46 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم مونوپولي ستور ⚙️</title>
+    <title>لوحة التحكم الرئيسية ⚙️</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <style>
+    <script src="js/app-config.js"></script> <style>
         :root { --main: #0088cc; --dark: #2c3e50; --bg: #f0f2f5; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
-        .header { background: var(--dark); color: white; padding: 20px; text-align: center; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        
-        /* شبكة الأزرار الاحترافية */
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .menu-card { 
-            background: white; padding: 30px; border-radius: 20px; text-align: center; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s;
-            border: 1px solid transparent;
-        }
-        .menu-card:hover { transform: translateY(-10px); border-color: var(--main); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .menu-card i { font-size: 40px; display: block; margin-bottom: 15px; }
-        .menu-card h3 { margin: 0; color: var(--dark); }
-        
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 30px; }
-        .stat-item { background: white; padding: 15px; border-radius: 12px; flex: 1; text-align: center; font-weight: bold; }
+        body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 40px; max-width: 1200px; margin: auto; }
+        .card { background: white; padding: 40px; border-radius: 25px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,88,204,0.15); border: 1px solid var(--main); }
+        .icon { font-size: 50px; margin-bottom: 15px; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>لوحة الإدارة الرئيسية 👑</h1>
-        <p>مرحباً بك في نظام إدارة متجر مونوپولي</p>
+    <div style="background: var(--dark); color: white; padding: 30px; text-align: center;">
+        <h1 id="store-title">جاري التحميل...</h1>
     </div>
 
-    <div class="container">
-        <div class="stats-bar">
-            <div class="stat-item">📦 المنتجات: <span id="p-count">0</span></div>
-            <div class="stat-item">👥 الزبائن: <span id="u-count">0</span></div>
-            <div class="stat-item" style="color: green;">💰 المبيعات: <span id="s-count">0$</span></div>
+    <div class="grid">
+        <div class="card" onclick="location.href=CONFIG.PATH_PRODUCTS">
+            <span class="icon">📦</span>
+            <h3>إدارة المنتجات</h3>
         </div>
-
-        <div class="admin-grid">
-            <div class="menu-card" onclick="location.href='admin-products.html'">
-                <i>📦</i>
-                <h3>إدارة المنتجات</h3>
-            </div>
-            <div class="menu-card" onclick="location.href='admin-users.html'">
-                <i>👥</i>
-                <h3>نقاط الولاء والزبائن</h3>
-            </div>
-            <div class="menu-card" onclick="location.href='admin-sales.html'">
-                <i>🧾</i>
-                <h3>سجل المبيعات</h3>
-            </div>
-            <div class="menu-card" onclick="location.href='admin-staff.html'">
-                <i>👮</i>
-                <h3>المشرفين والصلاحيات</h3>
-            </div>
+        <div class="card" onclick="location.href=CONFIG.PATH_USERS">
+            <span class="icon">👥</span>
+            <h3>إدارة الزبائن</h3>
         </div>
-        
-        <button onclick="location.reload()" style="margin-top:40px; width:100%; padding:15px; border-radius:10px; border:none; background:#e74c3c; color:white; font-weight:bold; cursor:pointer;">تسجيل الخروج</button>
+        <div class="card" onclick="location.href=CONFIG.PATH_SALES">
+            <span class="icon">🧾</span>
+            <h3>سجل المبيعات</h3>
+        </div>
+        <div class="card" onclick="location.href=CONFIG.PATH_STAFF">
+            <span class="icon">👮</span>
+            <h3>طاقم العمل</h3>
+        </div>
     </div>
 
     <script>
-        const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
-        const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
-        const _supabase = supabase.createClient(S_URL, S_KEY);
-
-        async function loadStats() {
-            const { data: p } = await _supabase.from('products').select('*');
-            const { data: u } = await _supabase.from('users').select('*');
-            const { data: s } = await _supabase.from('sales').select('*');
-            
-            document.getElementById('p-count').innerText = p?.length || 0;
-            document.getElementById('u-count').innerText = u?.length || 0;
-            document.getElementById('s-count').innerText = (s?.reduce((a, b) => a + b.price, 0) || 0) + "$";
-        }
-        loadStats();
+        // استخدام الإعدادات من الملف الموحد
+        document.title = "لوحة تحكم " + CONFIG.STORE_NAME;
+        document.getElementById('store-title').innerText = CONFIG.STORE_NAME;
     </script>
 </body>
 </html>
