@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>سجل المبيعات | مونوپولي</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        body { font-family: system-ui; background: #f4f7f6; padding: 20px; direction: rtl; }
+        .sale-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 5px solid #0088cc; }
+        .price-tag { color: green; font-weight: bold; float: left; }
+    </style>
+</head>
+<body>
+    <a href="admin.html" style="text-decoration:none; color:#0088cc; font-weight:bold;">← الرئيسية</a>
+    <h2>🧾 سجل المبيعات الأخير</h2>
+    <div id="sales-container"></div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function load() {
+        const { data, error } = await _supabase.from('sales').select('*').order('created_at', {ascending: false});
+        if(error) return document.getElementById('sales-container').innerText = "عذراً، لا تملك صلاحية الوصول لهذه البيانات.";
+        
+        document.getElementById('sales-container').innerHTML = data.map(s => `
+            <div class="sale-card">
+                <span class="price-tag">${s.price}${CONFIG.CURRENCY}</span>
+                <b>📦 ${s.product_name}</b><br>
+                <small>👤 العميل: ${s.customer_name} | 📝: ${s.details}</small>
+            </div>`).join('');
+    }
+    load();
+</script>
+</body>
+</html>
