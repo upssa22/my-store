@@ -2,91 +2,45 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة المنتجات 📦</title>
+    <title>إدارة المنتجات</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
     <style>
-        :root { --main: #0088cc; --bg: #f4f7f6; --danger: #e74c3c; --success: #2ecc71; }
-        body { font-family: system-ui; background: var(--bg); padding: 20px; direction: rtl; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
-        button { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-save { background: var(--main); color: white; width: 100%; }
-        
-        /* تصميم قائمة المنتجات */
-        .prod-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-        .status-badge { font-size: 11px; padding: 3px 8px; border-radius: 5px; color: white; }
-        .active { background: var(--success); }
-        .disabled { background: #95a5a6; }
+        body { font-family: system-ui; background: #f4f7f6; padding: 20px; direction: rtl; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .prod-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .btn-status { background: #f39c12; color: white; border: none; padding: 5px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <a href="admin.html" style="text-decoration:none; color:var(--main); font-weight:bold;">← العودة للرئيسية</a>
-    
-    <div class="grid">
-        <div class="card">
-            <h2>➕ إضافة منتج جديد</h2>
-            <input type="text" id="p-name" placeholder="اسم المنتج">
-            <select id="p-cat"><option>ملصقات</option><option>شحن</option><option>حسابات</option></select>
-            <input type="number" id="p-price" placeholder="السعر">
-            <input type="text" id="p-img" placeholder="رابط الصورة">
-            <input type="text" id="p-req" placeholder="الخانات المطلوبة (الاسم, الايدي)">
-            <textarea id="p-desc" placeholder="وصف المنتج (رابط فيديو المساعدة)"></textarea>
-            <button class="btn-save" onclick="save()">نشر المنتج ✅</button>
-        </div>
-
-        <div class="card">
-            <h2>📦 المنتجات المتوفرة</h2>
-            <div id="list-container">جاري التحميل...</div>
-        </div>
+    <a href="admin.html">← عودة</a>
+    <div class="card">
+        <h2>📦 إضافة منتج جديد</h2>
+        <input type="text" id="p-name" placeholder="الاسم" style="width:100%; padding:10px; margin:5px 0;">
+        <input type="number" id="p-price" placeholder="السعر" style="width:100%; padding:10px; margin:5px 0;">
+        <button onclick="save()" style="width:100%; padding:10px; background:#0088cc; color:white; border:none; border-radius:10px; cursor:pointer;">حفظ ✅</button>
     </div>
+    <div class="card" id="list">جاري التحميل...</div>
 
-<script>
-    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
-    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
-    const _supabase = supabase.createClient(S_URL, S_KEY);
-
-    async function load() {
-        const { data } = await _supabase.from('products').select('*').order('id', {ascending: false});
-        document.getElementById('list-container').innerHTML = data.map(p => `
-            <div class="prod-item">
-                <div>
-                    <b>${p.name}</b> <br>
-                    <span class="status-badge ${p.status === 'active' ? 'active' : 'disabled'}">${p.status}</span>
-                </div>
-                <div>
-                    <button onclick="toggleStatus(${p.id}, '${p.status}')" style="background:#f39c12; color:white;">${p.status === 'active' ? 'إيقاف' : 'تفعيل'}</button>
-                    <button onclick="del(${p.id})" style="background:#e74c3c; color:white;">حذف</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async function save() {
-        await _supabase.from('products').insert([{
-            name: document.getElementById('p-name').value,
-            category: document.getElementById('p-cat').value,
-            price: parseFloat(document.getElementById('p-price').value),
-            image_url: document.getElementById('p-img').value,
-            required_fields: document.getElementById('p-req').value,
-            description: document.getElementById('p-desc').value,
-            status: 'active'
-        }]);
-        location.reload();
-    }
-
-    async function toggleStatus(id, cur) {
-        const next = (cur === 'active') ? 'disabled' : 'active';
-        await _supabase.from('products').update({ status: next }).eq('id', id);
+    <script>
+        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        async function load() {
+            const { data } = await _supabase.from('products').select('*').order('id', {ascending:false});
+            document.getElementById('list').innerHTML = data.map(p => `
+                <div class="prod-row">
+                    <span>${p.name} (${p.status})</span>
+                    <button class="btn-status" onclick="toggle(${p.id}, '${p.status}')">تغيير الحالة</button>
+                </div>`).join('');
+        }
+        async function save() {
+            await _supabase.from('products').insert([{ name: document.getElementById('p-name').value, price: document.getElementById('p-price').value, status: 'active' }]);
+            load();
+        }
+        async function toggle(id, cur) {
+            await _supabase.from('products').update({ status: cur === 'active' ? 'disabled' : 'active' }).eq('id', id);
+            load();
+        }
         load();
-    }
-
-    async function del(id) {
-        if(confirm("حذف نهائي؟")) { await _supabase.from('products').delete().eq('id', id); load(); }
-    }
-
-    load();
-</script>
+    </script>
 </body>
 </html>
