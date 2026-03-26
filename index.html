@@ -3,145 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المتجر الرسمي | ون بيس</title>
+    <title>متجر ون بيس</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --main: #0088cc; --bg: #f8f9fb; --card: #ffffff; --text: #2c3e50; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 30px; direction: rtl; color: var(--text); -webkit-tap-highlight-color: transparent; }
+        :root { --main: #0088cc; --bg: #f8f9fb; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         
-        /* شاشة الصيانة / الحماية */
-        #maintenance-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #2c3e50; color: white; text-align: center; padding: 20px; box-sizing: border-box; }
-        .lock-icon { font-size: 80px; margin-bottom: 20px; }
-
-        /* الهيكل الرئيسي */
-        #main-content { display: none; }
-        .header { background: var(--card); padding: 25px 20px; text-align: center; box-shadow: 0 2px 15px rgba(0,0,0,0.04); border-radius: 0 0 30px 30px; margin-bottom: 15px; }
-        .header h1 { margin: 0; font-size: 22px; color: var(--main); font-weight: 800; }
-
-        /* شبكة المنتجات */
-        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
-        .product-card { background: var(--card); border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; position: relative; }
-        .product-card:active { transform: scale(0.95); }
-        .product-card img { width: 100%; height: 140px; object-fit: cover; }
-        .product-info { padding: 12px; text-align: center; }
-        .product-info h3 { margin: 0; font-size: 14px; height: 38px; overflow: hidden; color: var(--text); }
-        .product-price { color: #27ae60; font-weight: bold; font-size: 17px; margin-top: 8px; display: block; }
-
-        /* صفحة التفاصيل */
-        .page { display: none; padding: 0; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; overflow-y: auto; }
-        .active-page { display: block; }
-        .detail-img { width: 100%; height: 250px; object-fit: cover; }
-        .detail-card { background: var(--card); border-radius: 30px 30px 0 0; padding: 30px 20px; margin-top: -30px; position: relative; min-height: 80vh; }
+        /* واجهة الصيانة الديناميكية */
+        #coming-soon { 
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
+            background: #ffffff; color: #2c3e50;
+        }
+        #coming-soon img { width: 100%; max-width: 500px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* المدخلات */
-        .input-group input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 15px; border: 1.5px solid #eee; background: #fafafa; font-size: 16px; outline: none; box-sizing: border-box; }
-        .input-group input:focus { border-color: var(--main); background: #fff; }
-        .btn-back { width: 100%; padding: 15px; border: none; border-radius: 15px; background: #f1f2f6; color: #57606f; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        /* واجهة المتجر */
+        #main-store { display: none; }
+        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .p-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+        .p-card img { width: 100%; height: 130px; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <div id="maintenance-screen">
-        <div class="lock-icon">🔒</div>
-        <h2>المتجر قيد التجهيز</h2>
-        <p>عذراً، هذا المتجر متاح حالياً للمصرح لهم فقط.</p>
-        <div id="user-id-box" style="margin-top:20px; padding:10px 20px; background:rgba(255,255,255,0.1); border-radius:10px; font-size:13px; color:#bdc3c7;">
-            جاري جلب معرفك...
-        </div>
+    <div id="coming-soon">
+        <div id="maintenance-content">
+            </div>
+        <small id="user-id-tag" style="margin-top:30px; color:#bdc3c7; font-size:12px;"></small>
     </div>
 
-    <div id="main-content">
-        <div class="header">
-            <h1 id="store-title-ui">...</h1>
-        </div>
-        <div class="products-grid" id="products-list"></div>
-    </div>
-
-    <div id="detail-page" class="page">
-        <div id="detail-container"></div>
+    <div id="main-store">
+        <div class="header"><h1 id="st-name-ui">...</h1></div>
+        <div class="grid" id="p-list-ui"></div>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.expand();
-    
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-    let allProducts = [], selectedProduct = {};
 
     async function init() {
         const user = tg.initDataUnsafe.user;
-        const userIdBox = document.getElementById('user-id-box');
-        
-        // عرض الـ ID للمستخدم حتى لو لم يكن مسموحاً له لكي يرسله للأدمن
-        if(user) userIdBox.innerText = "معرف التلجرام الخاص بك: " + user.id;
+        if(user) document.getElementById('user-id-tag').innerText = "معرفك: " + user.id;
 
         try {
-            // جلب كامل قائمة الـ Whitelist للتأكد
-            const { data: whitelist, error } = await _supabase
-                .from('whitelist')
-                .select('telegram_id');
+            // 1. جلب الإعدادات (الصورة وحالة الصيانة)
+            const { data: settings } = await _supabase.from('store_settings').select('*').eq('id', 1).single();
+            // 2. جلب القائمة البيضاء
+            const { data: whitelist } = await _supabase.from('whitelist').select('telegram_id');
 
-            // فحص هل الـ ID الخاص بالمستخدم موجود في المصفوفة؟
-            const isAllowed = whitelist && whitelist.some(item => String(item.telegram_id) === String(user ? user.id : '0'));
+            const isAllowed = whitelist && whitelist.some(i => String(i.telegram_id) === String(user ? user.id : '0'));
 
-            if (error || !isAllowed) {
-                document.getElementById('maintenance-screen').style.display = 'flex';
-                document.getElementById('main-content').style.display = 'none';
+            // 🔒 منطق القفل: (إذا كانت الصيانة مفعلة وأنت لست أدمن)
+            if (settings.maintenance_mode && !isAllowed) {
+                document.getElementById('main-store').style.display = 'none';
+                const soon = document.getElementById('coming-soon');
+                soon.style.display = 'flex';
+                document.getElementById('maintenance-content').innerHTML = `
+                    <img src="${settings.maintenance_image}">
+                    <h1 style="color:var(--main);">${settings.maintenance_text}</h1>
+                    <p style="color:#7f8c8d;">شكراً لصبركم، نحن نطور المتجر للأفضل.</p>
+                `;
                 return;
             }
 
-            // إذا كان مسموحاً له، نفتح المتجر
-            document.getElementById('maintenance-screen').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            document.getElementById('store-title-ui').innerText = CONFIG.STORE_NAME;
+            // ✅ المتجر يفتح للأدمن أو إذا كانت الصيانة مغلقة
+            document.getElementById('coming-soon').style.display = 'none';
+            document.getElementById('main-store').style.display = 'block';
+            document.getElementById('st-name-ui').innerText = CONFIG.STORE_NAME;
+            loadStoreData();
 
-            loadProducts();
+        } catch (err) { console.error(err); }
+    }
 
-        } catch (err) {
-            console.error("Auth Error:", err);
-            document.getElementById('maintenance-screen').style.display = 'flex';
+    async function loadStoreData() {
+        const { data } = await _supabase.from('products').select('*').eq('status', 'active');
+        if(data) {
+            document.getElementById('p-list-ui').innerHTML = data.map(p => `
+                <div class="p-card">
+                    <img src="${p.image_url}">
+                    <div style="padding:10px;">
+                        <h4 style="margin:0;">${p.name}</h4>
+                        <b style="color:#27ae60;">${p.price}${CONFIG.CURRENCY}</b>
+                    </div>
+                </div>`).join('');
         }
     }
 
-    async function loadProducts() {
-        const { data } = await _supabase.from('products').select('*').eq('status', 'active').order('id', { ascending: false });
-        if (!data) return;
-        allProducts = data;
-        
-        document.getElementById('products-list').innerHTML = data.map(p => `
-            <div class="product-card" onclick="openProduct(${p.id})">
-                <img src="${p.image_url || 'https://via.placeholder.com/150'}">
-                <div class="product-info">
-                    <h3>${p.name}</h3>
-                    <span class="product-price">${p.price}${CONFIG.CURRENCY}</span>
-                </div>
-            </div>`).join('');
-    }
-
-    function openProduct(id) {
-        selectedProduct = allProducts.find(p => p.id === id);
-        const container = document.getElementById('detail-container');
-        
-        container.innerHTML = `
-            <img src="${selectedProduct.image_url}" class="detail-img">
-            <div class="detail-card">
-                <h2>${selectedProduct.name}</h2>
-                <p style="color:#7f8c8d; font-size:14px;">${selectedProduct.description || ''}</p>
-                <div class="input-group" id="dynamic-fields"></div>
-                <button class="btn-back" onclick="closeProduct()">العودة للمتجر</button>
-            </div>`;
-
-        const fields = selectedProduct.required_fields ? selectedProduct.required_fields.split(',') : [];
-        fields.forEach(f => {
-            document.getElementById('dynamic-fields').innerHTML += `<input type="text" placeholder="أدخل ${f.trim()}" class="product-user-input">`;
-        });
-
-        document.getElementById('detail-page').classList.add('active-page');
-        tg.MainButton.setText("تأكيد الطلب ✅").show();
-    }
-
-    function closeProduct() {
-        document.getElementById('detail-page').classList.remove('active-page');
-        tg.MainButton.hide();
+    init();
+</script>
+</body>
+</html>
