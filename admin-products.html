@@ -2,118 +2,195 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة منتجات المقر الملكي 📦</title>
+    <title>إدارة المقر الملكي | المنتجات والحقول</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal: #1e293b; --gold: #c5a059; --danger: #ef4444; --bg: #f8fafc; }
-        body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
-        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
-        .container { max-width: 1000px; margin: 20px auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; padding: 0 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-add { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        :root { --royal: #1e293b; --gold: #c5a059; --danger: #ef4444; --bg: #f1f5f9; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1100px; margin: 20px auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
         
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-main { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-main:hover { background: #334155; }
+
+        /* منطقة الحقول الديناميكية */
+        .fields-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; margin: 15px 0; }
+        .field-tag { display: inline-flex; align-items: center; background: var(--royal); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin: 5px; }
+        .field-tag span { margin-right: 8px; cursor: pointer; color: var(--gold); font-weight: bold; }
+
         /* قائمة المنتجات */
-        .p-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; background: white; border-radius: 10px; margin-bottom: 10px; }
-        .p-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
-        .p-actions { margin-right: auto; display: flex; gap: 10px; }
-        .btn-del { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        .btn-edit { background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .p-list-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .p-list-item img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        .p-info { flex: 1; }
+        .p-actions { display: flex; gap: 8px; }
+        .btn-action { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .edit-btn { background: #3b82f6; color: white; }
+        .del-btn { background: var(--danger); color: white; }
+        
+        #p-preview { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid #ddd; display: none; }
     </style>
 </head>
 <body>
 
 <div class="admin-header">
-    <h1>📦 إدارة منتجات المتجر الملكي</h1>
-    <button onclick="location.href='admin.html'" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">العودة للوحة التحكم</button>
+    <h1>📦 إدارة المنتجات الملكية</h1>
+    <button onclick="location.href='admin.html'" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:20px; cursor:pointer; margin-top:10px;">العودة للرئيسية</button>
 </div>
 
 <div class="container">
     <div class="card">
-        <h3>➕ إضافة منتج جديد</h3>
-        <input type="text" id="p-name" placeholder="اسم المنتج (مثال: شحن 1000 جوهرة)">
-        <input type="number" id="p-price" placeholder="السعر">
+        <h3 id="form-title">➕ إضافة منتج جديد</h3>
+        <input type="hidden" id="edit-id">
         
-        <div style="border: 2px dashed #ddd; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer;" onclick="document.getElementById('f-input').click()">
+        <input type="text" id="p-name" placeholder="اسم المنتج">
+        <input type="number" id="p-price" placeholder="السعر بالدولار">
+
+        <div style="border: 2px dashed var(--gold); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; background: #fffcf5;" onclick="document.getElementById('file-input').click()">
             <span id="u-status">🖼️ اضغط لرفع صورة المنتج</span>
-            <input type="file" id="f-input" hidden accept="image/*" onchange="uploadProductImg(this)">
+            <input type="file" id="file-input" hidden accept="image/*" onchange="handleImageUpload(this)">
         </div>
         <input type="hidden" id="p-img-url">
-        <img id="p-preview" style="width:100%; margin-top:10px; border-radius:10px; display:none;">
+        <img id="p-preview">
 
-        <textarea id="p-desc" placeholder="وصف المنتج..."></textarea>
-        <button class="btn-add" onclick="saveProduct()">نشر المنتج في المتجر ✅</button>
+        <div class="fields-box">
+            <b>📍 البيانات المطلوبة من الزبون:</b>
+            <div id="selected-fields" style="margin: 10px 0;"></div>
+            <select onchange="addNewField(this.value); this.value=''">
+                <option value="">+ اختر حقل بيانات إضافي</option>
+                <option value="اسم اللاعب">اسم اللاعب (In-game Name)</option>
+                <option value="رقم الـ ID">رقم الـ ID</option>
+                <option value="رابط الحساب">رابط الحساب (Profile Link)</option>
+                <option value="اسم الكرت المطلوب">اسم الكرت المطلوب</option>
+                <option value="اسم المجموعة">اسم المجموعة (Set Name)</option>
+            </select>
+        </div>
+
+        <button class="btn-main" id="save-btn" onclick="processProduct()">حفظ المنتج في المتجر ✅</button>
+        <button id="cancel-btn" onclick="resetUI()" style="display:none; width:100%; background:none; border:none; color:red; margin-top:10px; cursor:pointer;">إلغاء التعديل</button>
     </div>
 
-    <div>
-        <h3>📋 المنتجات الحالية في المقر</h3>
-        <div id="products-list">
-            </div>
+    <div id="list-container">
+        <h3>📋 المنتجات المعروضة حالياً</h3>
+        <div id="products-render">
+            <p style="color:#888;">جاري تحميل المنتجات...</p>
+        </div>
     </div>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    let currentFields = [];
 
-    // 1. رفع الصورة
-    async function uploadProductImg(input) {
+    // 1. إدارة الحقول الديناميكية
+    function addNewField(val) {
+        if(!val || currentFields.includes(val)) return;
+        currentFields.push(val);
+        renderFieldTags();
+    }
+
+    function removeFieldTag(val) {
+        currentFields = currentFields.filter(f => f !== val);
+        renderFieldTags();
+    }
+
+    function renderFieldTags() {
+        const box = document.getElementById('selected-fields');
+        box.innerHTML = currentFields.map(f => `
+            <div class="field-tag">${f} <span onclick="removeFieldTag('${f}')">✕</span></div>
+        `).join('');
+    }
+
+    // 2. رفع الصور للمخزن
+    async function handleImageUpload(input) {
         const file = input.files[0];
         if(!file) return;
         document.getElementById('u-status').innerText = "جاري الرفع... ⏳";
         
-        const fileName = `prod_${Date.now()}.png`;
-        const { data, error } = await _supabase.storage.from('store-assets').upload(fileName, file);
-
+        const name = `prod_${Date.now()}.png`;
+        const { data, error } = await _supabase.storage.from('store-assets').upload(name, file);
+        
         if(!error) {
-            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(fileName);
+            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(name);
             document.getElementById('p-img-url').value = publicUrl;
             document.getElementById('p-preview').src = publicUrl;
             document.getElementById('p-preview').style.display = 'block';
-            document.getElementById('u-status').innerText = "تم رفع الصورة ✅";
+            document.getElementById('u-status').innerText = "تم الرفع بنجاح ✅";
         }
     }
 
-    // 2. حفظ المنتج
-    async function saveProduct() {
+    // 3. معالجة الحفظ (إضافة أو تعديل)
+    async function processProduct() {
+        const id = document.getElementById('edit-id').value;
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
         const img = document.getElementById('p-img-url').value;
 
-        if(!name || !price || !img) return alert("أكمل البيانات والصورة أولاً!");
+        if(!name || !price || !img) return alert("أكمل البيانات والصورة!");
 
-        const { error } = await _supabase.from('products').insert([{
-            name, price: parseFloat(price), image_url: img, description: document.getElementById('p-desc').value, status: 'active'
-        }]);
+        const productData = {
+            name, price: parseFloat(price), image_url: img, 
+            required_fields: currentFields, status: 'active'
+        };
 
-        if(!error) { alert("تمت الإضافة!"); location.reload(); }
-        else { alert("خطأ: " + error.message); }
+        let result;
+        if(id) {
+            result = await _supabase.from('products').update(productData).eq('id', id);
+        } else {
+            result = await _supabase.from('products').insert([productData]);
+        }
+
+        if(!result.error) { alert("تمت العملية بنجاح!"); location.reload(); }
+        else { alert("حدث خطأ: " + result.error.message); }
     }
 
-    // 3. حذف المنتج
-    async function deleteProduct(id) {
-        if(!confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) return;
-        const { error } = await _supabase.from('products').delete().eq('id', id);
-        if(!error) location.reload();
+    // 4. الحذف والتعديل
+    async function deleteItem(id) {
+        if(!confirm("هل أنت متأكد من الحذف؟")) return;
+        await _supabase.from('products').delete().eq('id', id);
+        location.reload();
     }
 
-    // 4. تحميل المنتجات
-    async function load() {
+    function startEdit(p) {
+        document.getElementById('form-title').innerText = "📝 تعديل المنتج";
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('p-name').value = p.name;
+        document.getElementById('p-price').value = p.price;
+        document.getElementById('p-img-url').value = p.image_url;
+        document.getElementById('p-preview').src = p.image_url;
+        document.getElementById('p-preview').style.display = 'block';
+        currentFields = p.required_fields || [];
+        renderFieldTags();
+        document.getElementById('cancel-btn').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetUI() { location.reload(); }
+
+    // 5. تحميل القائمة
+    async function fetchList() {
         const { data } = await _supabase.from('products').select('*').order('id', {ascending: false});
-        document.getElementById('products-list').innerHTML = data.map(p => `
-            <div class="p-item">
+        const container = document.getElementById('products-render');
+        if(!data || data.length === 0) { container.innerHTML = "لا يوجد منتجات."; return; }
+
+        container.innerHTML = data.map(p => `
+            <div class="p-list-item">
                 <img src="${p.image_url}">
-                <div>
+                <div class="p-info">
                     <b>${p.name}</b><br>
-                    <small>${p.price} ${CONFIG.CURRENCY}</small>
+                    <small>${p.price}${CONFIG.CURRENCY}</small>
                 </div>
                 <div class="p-actions">
-                    <button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ حذف</button>
+                    <button class="btn-action edit-btn" onclick='startEdit(${JSON.stringify(p)})'>تعديل</button>
+                    <button class="btn-action del-btn" onclick="deleteItem(${p.id})">حذف</button>
                 </div>
             </div>
         `).join('');
     }
-    load();
+
+    fetchList();
 </script>
 </body>
 </html>
