@@ -2,36 +2,56 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة الزبائن</title>
+    <title>إدارة الزبائن | ون بيس</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        body { font-family: system-ui; background: #f4f7f6; padding: 20px; direction: rtl; }
-        table { width: 100%; background: white; border-radius: 10px; overflow: hidden; border-collapse: collapse; }
+        :root { --dark: #2c3e50; --main: #3498db; --bg: #f4f7f6; }
+        body { margin: 0; font-family: system-ui; background: var(--bg); direction: rtl; }
+        .admin-header { background: var(--dark); color: white; padding: 25px 0; text-align: center; }
+        .breadcrumb { margin-top: 10px; font-size: 14px; color: #bdc3c7; }
+        .breadcrumb a { color: var(--main); text-decoration: none; font-weight: bold; }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--main); }
+        .btn-edit { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <a href="admin.html">← عودة</a>
-    <h2>👥 إدارة مستخدمي المتجر</h2>
-    <table>
-        <thead><tr><th>الاسم</th><th>الـ ID</th><th id="p-label">النقاط</th><th>إجراء</th></tr></thead>
-        <tbody id="users"></tbody>
-    </table>
-    <script>
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-        document.getElementById('p-label').innerText = CONFIG.POINTS_NAME;
-        async function load() {
-            const { data } = await _supabase.from('users').select('*');
-            document.getElementById('users').innerHTML = data.map(u => `
-                <tr><td>${u.first_name}</td><td>${u.telegram_id}</td><td>${u.points}</td>
-                <td><button onclick="edit(${u.telegram_id}, ${u.points})">تعديل</button></td></tr>`).join('');
-        }
-        async function edit(id, cur) {
-            const val = prompt(`رصيد ${CONFIG.POINTS_NAME}:`, cur);
-            if(val) { await _supabase.from('users').update({points: parseInt(val)}).eq('telegram_id', id); load(); }
-        }
-        load();
-    </script>
+
+<div class="admin-header">
+    <h1 onclick="location.href='admin.html'" style="cursor:pointer; margin:0;">متجر ون بيس</h1>
+    <div class="breadcrumb"><a href="admin.html">الرئيسية</a> / <span>إدارة الزبائن 👥</span></div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>👥 قائمة الزبائن و <span id="p-label">النقاط</span></h2>
+        <table>
+            <thead><tr><th>الاسم</th><th>معرف التلجرام</th><th id="p-head">النقاط</th><th>إجراء</th></tr></thead>
+            <tbody id="user-list"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    document.getElementById('p-label').innerText = CONFIG.POINTS_NAME;
+    document.getElementById('p-head').innerText = CONFIG.POINTS_NAME;
+
+    async function load() {
+        const { data } = await _supabase.from('users').select('*').order('created_at', {ascending: false});
+        document.getElementById('user-list').innerHTML = data.map(u => `
+            <tr><td>${u.first_name}</td><td>${u.telegram_id}</td><td><b>${u.points}</b></td>
+            <td><button class="btn-edit" onclick="update(${u.telegram_id}, ${u.points})">تعديل</button></td></tr>`).join('');
+    }
+    async function update(tid, cur) {
+        const val = prompt(`رصيد ${CONFIG.POINTS_NAME}:`, cur);
+        if(val) { await _supabase.from('users').update({points: parseInt(val)}).eq('telegram_id', tid); load(); }
+    }
+    load();
+</script>
 </body>
 </html>
