@@ -9,58 +9,151 @@
     <script src="js/app-config.js"></script>
     <style>
         :root { --royal-blue: #1e293b; --gold: #c5a059; --accent: #0088cc; --bg: #f8fafc; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; color: #1e293b; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; direction: rtl; color: #1e293b; overflow-x: hidden; }
 
-        /* شاشة الانتظار */
+        /* شاشة الانتظار والتحميل */
         #coming-soon { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             min-height: 100vh; text-align: center; padding: 20px; background: white; box-sizing: border-box;
         }
         #coming-soon img { width: 100%; max-width: 500px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin-bottom: 25px; }
-        
-        /* المتجر الرئيسي */
+        #coming-soon h1 { color: var(--royal-blue); font-size: 22px; margin-bottom: 10px; }
+
+        /* الهيدر الملكي */
         #main-store { display: none; padding-bottom: 50px; }
-        .header { background: white; padding: 20px; text-align: center; border-bottom: 3px solid var(--gold); }
-        .dice-anim { font-size: 20px; margin-top: 5px; animation: bounce 2s infinite; }
+        .header { background: white; padding: 20px; text-align: center; border-bottom: 3px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .dice-anim { font-size: 22px; margin-top: 5px; animation: bounce 2s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
+        /* المنتجات */
         .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .product-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
         .product-card img { width: 100%; height: 140px; object-fit: cover; background: #eee; }
         .p-info { padding: 12px; }
         .p-price { color: #10b981; font-weight: 800; font-size: 16px; margin-top: 5px; display: block; }
 
-        /* شريط الأصدقاء */
+        /* شريط المتصدرين (Monopoly) */
         .friends-bar { background: white; margin: 20px 15px; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .friends-list { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 5px; scrollbar-width: none; }
         .friend { flex-shrink: 0; text-align: center; width: 65px; }
         .friend img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); padding: 2px; }
         .friend span { display: block; font-size: 10px; margin-top: 5px; color: #64748b; }
-        
-        .error-msg { color: #e74c3c; padding: 20px; font-weight: bold; }
+
+        /* لودر بسيط */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--gold); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="coming-soon">
         <div id="m-content">
+            <div class="loader"></div>
             <p>جاري فحص الاتصال بالمقر الملكي... 🏗️</p>
         </div>
-        <small id="user-tag" style="color:#cbd5e1; margin-top:15px;"></small>
+        <small id="user-tag" style="color:#cbd5e1; margin-top:20px;"></small>
     </div>
 
     <div id="main-store">
         <div class="header">
-            <div style="font-size: 30px;">👑</div>
+            <div style="font-size: 35px;">👑</div>
             <h1 id="store-title-ui" style="margin:5px 0; font-size:18px;">المقر الملكي للشحن</h1>
             <div class="dice-anim">🎲 🏁 🎲</div>
         </div>
+
         <div class="products-grid" id="products-list"></div>
-        
+
         <div class="friends-bar">
-            <h4 style="margin:0 0 10px 0; font-size:14px; color:var(--gold);">🏆 قائمة المتصدرين</h4>
+            <h4 style="margin:0 0 10px 0; font-size:14px; color:var(--gold);">🏆 قائمة المتصدرين الملكية</h4>
             <div class="friends-list">
                 <div class="friend"><img src="https://i.pravatar.cc/100?u=1"><span>ناصر_GO</span></div>
                 <div class="friend"><img src="https://i.pravatar.cc/100?u=2"><span>فهد_التاجر</span></div>
                 <div class="friend"><img src="https://i.pravatar.cc/100?u=3"><span>قراصنة_الشرق</span></div>
-                <div class="friend
+                <div class="friend"><img src="https://i.pravatar.cc/100?u=4"><span>الملكي_11</span></div>
+                <div class="friend"><img src="https://i.pravatar.cc/100?u=5"><span>مطور_البوت</span></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // تهيئة تلجرام
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    // تهيئة Supabase
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function init() {
+        const user = tg.initDataUnsafe.user;
+        const userId = user ? String(user.id) : '0';
+        if(user) document.getElementById('user-tag').innerText = "معرفك الملكي: " + userId;
+
+        try {
+            // 1. جلب البيانات الأساسية
+            const [settingsRes, whitelistRes] = await Promise.all([
+                _supabase.from('store_settings').select('*').eq('id', 1).single(),
+                _supabase.from('whitelist').select('telegram_id')
+            ]);
+
+            // التحقق من وجود أخطاء في الرد
+            if (settingsRes.error) throw new Error("لا يمكن الوصول لإعدادات المتجر (تأكد من وجود سجل ID=1)");
+
+            const settings = settingsRes.data;
+            const whitelist = whitelistRes.data || [];
+
+            // 2. فحص هل المستخدم أدمن؟
+            const isAllowed = whitelist.some(i => String(i.telegram_id) === userId);
+
+            // 3. اتخاذ القرار (فتح المتجر أم شاشة الانتظار)
+            if (settings.maintenance_mode && !isAllowed) {
+                // وضع الصيانة (للزبائن العاديين)
+                document.getElementById('m-content').innerHTML = `
+                    <img src="${settings.maintenance_image}" style="width:100%; border-radius:20px;">
+                    <h1>${settings.maintenance_text}</h1>
+                    <p style="color:#64748b; font-size:14px;">نقوم الآن بتجهيز الكنوز الملكية.. قريباً الانطلاق!</p>
+                `;
+            } else {
+                // فتح المتجر (للأدمن أو عند انتهاء الصيانة)
+                document.getElementById('coming-soon').style.display = 'none';
+                document.getElementById('main-store').style.display = 'block';
+                document.getElementById('store-title-ui').innerText = CONFIG.STORE_NAME;
+                loadProducts();
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('m-content').innerHTML = `
+                <div style="color:red; padding:20px;">
+                    <h3>⚠️ خطأ في الاتصال بالخادم</h3>
+                    <p style="font-size:12px;">${err.message}</p>
+                    <button onclick="location.reload()" style="padding:10px 20px; border-radius:10px; border:none; background:var(--royal-blue); color:white; font-weight:bold; cursor:pointer;">إعادة المحاولة 🔄</button>
+                </div>
+            `;
+        }
+    }
+
+    async function loadProducts() {
+        try {
+            const { data } = await _supabase.from('products').select('*').eq('status', 'active').order('id', {ascending: false});
+            if(data && data.length > 0) {
+                document.getElementById('products-list').innerHTML = data.map(p => `
+                    <div class="product-card" onclick="tg.HapticFeedback.impactOccurred('medium')">
+                        <img src="${p.image_url || 'https://via.placeholder.com/150'}">
+                        <div class="p-info">
+                            <h3 style="margin:0; font-size:14px;">${p.name}</h3>
+                            <b class="p-price">${p.price}${CONFIG.CURRENCY}</b>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('products-list').innerHTML = '<p style="grid-column: 1/3; color:#888;">لا توجد منتجات معروضة حالياً.</p>';
+            }
+        } catch (err) {
+            console.error("Products Load Error:", err);
+        }
+    }
+
+    // انطلاق البوت
+    init();
+</script>
+</body>
+</html>
