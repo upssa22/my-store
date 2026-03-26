@@ -1,177 +1,24 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المتجر الرسمي</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="js/app-config.js"></script> <style>
-        :root { --main: #0088cc; --bg: #f8f9fb; --card: #ffffff; --text: #2c3e50; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; direction: rtl; color: var(--text); -webkit-tap-highlight-color: transparent; }
-        
-        /* الهيدر */
-        .header { background: var(--card); padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border-radius: 0 0 25px 25px; margin-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 20px; color: var(--main); }
-
-        /* الأقسام */
-        .categories { display: flex; gap: 10px; overflow-x: auto; padding: 10px 15px; scrollbar-width: none; }
-        .categories::-webkit-scrollbar { display: none; }
-        .cat-btn { background: var(--card); border: none; padding: 10px 20px; border-radius: 50px; white-space: nowrap; font-weight: 600; color: #7f8c8d; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; }
-        .cat-btn.active { background: var(--main); color: white; transform: scale(1.05); }
-
-        /* شبكة المنتجات */
-        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
-        .product-card { background: var(--card); border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.04); transition: 0.3s; animation: fadeInUp 0.5s ease backwards; }
-        .product-card:active { transform: scale(0.96); }
-        .product-card img { width: 100%; height: 130px; object-fit: cover; }
-        .product-info { padding: 12px; text-align: center; }
-        .product-info h3 { margin: 0; font-size: 14px; height: 35px; overflow: hidden; }
-        .product-price { color: #27ae60; font-weight: bold; font-size: 16px; margin-top: 8px; display: block; }
-
-        /* صفحة التفاصيل */
-        .page { display: none; padding: 20px; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; overflow-y: auto; box-sizing: border-box; }
-        .active-page { display: block; }
-        .detail-img { width: 100%; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .detail-content { background: var(--card); border-radius: 30px; padding: 25px; margin-top: -30px; position: relative; min-height: 100vh; }
-        
-        /* المدخلات */
-        .input-group input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1.5px solid #eee; background: #fafafa; font-size: 15px; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .input-group input:focus { border-color: var(--main); background: #fff; }
-
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-
-    <div id="home-page">
-        <div class="header">
-            <h1 id="store-name-display">جاري التحميل...</h1>
-        </div>
-
-        <div class="categories" id="categories-bar">
-            </div>
-
-        <div class="products-grid" id="products-list">
-            </div>
-    </div>
-
-    <div id="detail-page" class="page">
-        <div id="detail-container">
-            </div>
-    </div>
-
-<script>
+async function init() {
     const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
+    const user = tg.initDataUnsafe.user;
 
-    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-    let allProducts = [], currentProduct = {};
+    // 🔒 نظام القفل الديناميكي
+    const { data: isAllowed } = await _supabase
+        .from('whitelist')
+        .select('*')
+        .eq('telegram_id', user ? user.id : 0)
+        .single();
 
-    async function init() {
-        document.getElementById('store-name-display').innerText = CONFIG.STORE_NAME;
-        
-        // 1. تسجيل/تحديث بيانات المستخدم في القاعدة (بصمت)
-        const user = tg.initDataUnsafe.user;
-        if(user) {
-            await _supabase.from('users').upsert([{ 
-                telegram_id: user.id, 
-                first_name: user.first_name, 
-                username: user.username 
-            }], { onConflict: 'telegram_id' });
-        }
-
-        // 2. جلب المنتجات المفعلة
-        const { data } = await _supabase.from('products').select('*').eq('status', 'active');
-        allProducts = data || [];
-        
-        renderCategories();
-        renderProducts(allProducts);
+    if (!isAllowed) {
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('maintenance-screen').style.display = 'flex';
+        // يمكنك إظهار الـ ID الخاص به لكي يرسله لك وتضيفه
+        document.getElementById('maintenance-screen').innerHTML += 
+            `<small style="margin-top:20px; color:#bdc3c7;">ID الخاص بك: ${user ? user.id : 'غير معروف'}</small>`;
+        return;
     }
 
-    function renderCategories() {
-        const cats = ['الكل', ...new Set(allProducts.map(p => p.category))];
-        const bar = document.getElementById('categories-bar');
-        bar.innerHTML = cats.map(c => `<button class="cat-btn ${c==='الكل'?'active':''}" onclick="filterProducts('${c}', this)">${c}</button>`).join('');
-    }
-
-    function renderProducts(items) {
-        const list = document.getElementById('products-list');
-        list.innerHTML = items.map((p, index) => `
-            <div class="product-card" style="animation-delay: ${index * 0.1}s" onclick="openProduct(${p.id})">
-                <img src="${p.image_url || 'https://via.placeholder.com/150'}">
-                <div class="product-info">
-                    <h3>${p.name}</h3>
-                    <span class="product-price">${p.price}${CONFIG.CURRENCY}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function filterProducts(cat, btn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filtered = cat === 'الكل' ? allProducts : allProducts.filter(p => p.category === cat);
-        renderProducts(filtered);
-    }
-
-    function openProduct(id) {
-        currentProduct = allProducts.find(p => p.id === id);
-        const container = document.getElementById('detail-container');
-        
-        container.innerHTML = `
-            <img src="${currentProduct.image_url}" class="detail-img">
-            <div class="detail-content">
-                <h2>${currentProduct.name}</h2>
-                <p style="color:#7f8c8d; line-height:1.6;">${currentProduct.description}</p>
-                <div class="input-group" id="fields-container"></div>
-                <button onclick="closeProduct()" style="width:100%; background:#eee; border:none; padding:15px; border-radius:15px; margin-top:10px; font-weight:bold;">العودة</button>
-            </div>
-        `;
-
-        const fields = currentProduct.required_fields ? currentProduct.required_fields.split(',') : [];
-        const fContainer = document.getElementById('fields-container');
-        fields.forEach(f => {
-            fContainer.innerHTML += `<input type="text" placeholder="أدخل ${f.trim()}" class="user-input">`;
-        });
-
-        document.getElementById('detail-page').classList.add('active-page');
-        tg.MainButton.setText("تأكيد الطلب ✅").show();
-    }
-
-    function closeProduct() {
-        document.getElementById('detail-page').classList.remove('active-page');
-        tg.MainButton.hide();
-    }
-
-    tg.MainButton.onClick(async () => {
-        const inputs = Array.from(document.querySelectorAll('.user-input')).map(i => i.value);
-        if(inputs.some(v => !v)) return tg.showAlert("يرجى ملء جميع البيانات المطلوبة!");
-
-        tg.MainButton.showProgress();
-        
-        const orderData = {
-            product_name: currentProduct.name,
-            price: currentProduct.price,
-            customer_name: tg.initDataUnsafe.user?.first_name || "لاعب",
-            customer_id: tg.initDataUnsafe.user?.id,
-            details: inputs.join(' | ')
-        };
-
-        const { error } = await _supabase.from('sales').insert([orderData]);
-
-        if(!error) {
-            tg.showAlert("تم إرسال طلبك بنجاح! 🎉");
-            tg.close();
-        } else {
-            tg.showAlert("حدث خطأ، يرجى المحاولة لاحقاً.");
-            tg.MainButton.hideProgress();
-        }
-    });
-
-    closeProduct(); // للبدء من الصفحة الرئيسية
-    init();
-</script>
-</body>
-</html>
+    // إذا كان موجوداً في القائمة البيضاء، يفتح المتجر
+    document.getElementById('store-title').innerText = CONFIG.STORE_NAME;
+    // ... استكمال جلب المنتجات ...
+}
