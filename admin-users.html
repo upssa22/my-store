@@ -2,60 +2,36 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة الزبائن | مونوپولي</title>
+    <title>إدارة الزبائن</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="js/app-config.js"></script> <style>
-        :root { --main: #0088cc; --dark: #2c3e50; --bg: #f4f7f6; }
-        body { font-family: system-ui; background: var(--bg); padding: 20px; direction: rtl; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: var(--main); color: white; }
-        .btn-edit { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    <script src="js/app-config.js"></script>
+    <style>
+        body { font-family: system-ui; background: #f4f7f6; padding: 20px; direction: rtl; }
+        table { width: 100%; background: white; border-radius: 10px; overflow: hidden; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-    <a href="admin.html" style="text-decoration:none; color:var(--main); font-weight:bold;">← العودة للرئيسية</a>
-
-    <div class="card" style="margin-top:20px;">
-        <h2 id="page-title">إدارة الزبائن</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>ID التلجرام</th>
-                    <th id="points-head">النقاط</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="user-list"></tbody>
-        </table>
-    </div>
-
-<script>
-    // استخدام الإعدادات الموحدة
-    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-    document.getElementById('points-head').innerText = CONFIG.POINTS_NAME;
-
-    async function load() {
-        const { data } = await _supabase.from('users').select('*').order('created_at', {ascending: false});
-        document.getElementById('user-list').innerHTML = data.map(u => `
-            <tr>
-                <td>${u.first_name}</td>
-                <td>${u.telegram_id}</td>
-                <td><b>${u.points}</b></td>
-                <td><button class="btn-edit" onclick="update(${u.telegram_id}, ${u.points})">تعديل</button></td>
-            </tr>`).join('');
-    }
-
-    async function update(tid, cur) {
-        const val = prompt(`أدخل رصيد ${CONFIG.POINTS_NAME} الجديد:`, cur);
-        if(val !== null) {
-            await _supabase.from('users').update({ points: parseInt(val) }).eq('telegram_id', tid);
-            load();
+    <a href="admin.html">← عودة</a>
+    <h2>👥 إدارة مستخدمي المتجر</h2>
+    <table>
+        <thead><tr><th>الاسم</th><th>الـ ID</th><th id="p-label">النقاط</th><th>إجراء</th></tr></thead>
+        <tbody id="users"></tbody>
+    </table>
+    <script>
+        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        document.getElementById('p-label').innerText = CONFIG.POINTS_NAME;
+        async function load() {
+            const { data } = await _supabase.from('users').select('*');
+            document.getElementById('users').innerHTML = data.map(u => `
+                <tr><td>${u.first_name}</td><td>${u.telegram_id}</td><td>${u.points}</td>
+                <td><button onclick="edit(${u.telegram_id}, ${u.points})">تعديل</button></td></tr>`).join('');
         }
-    }
-    load();
-</script>
+        async function edit(id, cur) {
+            const val = prompt(`رصيد ${CONFIG.POINTS_NAME}:`, cur);
+            if(val) { await _supabase.from('users').update({points: parseInt(val)}).eq('telegram_id', id); load(); }
+        }
+        load();
+    </script>
 </body>
 </html>
