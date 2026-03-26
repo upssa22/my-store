@@ -18,11 +18,12 @@
         <h1 id="title">لوحة التحكم</h1>
     </div>
     <div class="grid">
-        <div class="card" onclick="location.href=CONFIG.PATH_PRODUCTS"><h3>📦 المنتجات</h3></div>
-        <div class="card" onclick="location.href=CONFIG.PATH_USERS"><h3>👥 الزبائن</h3></div>
-        <div class="card" onclick="location.href=CONFIG.PATH_SALES"><h3>🧾 المبيعات</h3></div>
-        <div class="card" onclick="location.href=CONFIG.PATH_STAFF"><h3>👮 الطاقم</h3></div>
-    </div>
+    <div class="card" onclick="location.href=CONFIG.PATH_PRODUCTS"><span>📦</span><h3>المنتجات</h3></div>
+    <div class="card" onclick="location.href=CONFIG.PATH_USERS"><span>👥</span><h3>الزبائن</h3></div>
+    <div class="card" onclick="location.href='admin-whitelist.html'"><span>🛡️</span><h3>القائمة البيضاء</h3></div>
+    <div class="card" onclick="location.href=CONFIG.PATH_SALES"><span>🧾</span><h3>المبيعات</h3></div>
+    <div class="card" onclick="location.href=CONFIG.PATH_STAFF"><span>👮</span><h3>الطاقم</h3></div>
+</div>
     <script>
         document.getElementById('title').innerText = CONFIG.STORE_NAME;
     </script>
