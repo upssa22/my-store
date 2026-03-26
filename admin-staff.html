@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة الطاقم والأمان 👮</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --main: #0088cc; --dark: #2c3e50; --danger: #e74c3c; --success: #2ecc71; --bg: #f4f7f6; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 1100px; margin: auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h2 { color: var(--dark); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px; }
+        
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-main { background: var(--main); color: white; }
+        .btn-save { background: var(--success); color: white; }
+        .btn-del { background: var(--danger); color: white; padding: 5px 10px; width: auto; font-size: 12px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; color: var(--main); }
+        .my-account-tag { background: #e3f2fd; color: #0088cc; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="admin.html" style="text-decoration:none; color:var(--main); font-weight:bold; display:block; margin-bottom:20px;">← العودة للرئيسية</a>
+
+    <div class="grid">
+        <div class="card">
+            <h2>👤 إعدادات حسابي</h2>
+            <p style="font-size: 12px; color: #666;">يمكنك تغيير بيانات دخولك من هنا:</p>
+            <input type="text" id="my-name" placeholder="الاسم الكامل">
+            <input type="email" id="my-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="my-pass" placeholder="كلمة مرور جديدة">
+            <button class="btn-save" onclick="updateMyAccount()">حفظ التغييرات ✅</button>
+            <p id="update-msg" style="font-size: 12px; text-align: center; margin-top: 10px;"></p>
+        </div>
+
+        <div class="card" id="admin-section">
+            <h2>👥 إدارة المشرفين (للمدير فقط)</h2>
+            <div style="background: #fffef0; padding: 15px; border-radius: 10px; border: 1px solid #ffeeba; margin-bottom: 20px;">
+                <h4 style="margin:0 0 10px 0; font-size:14px;">➕ إضافة مشرف جديد</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="text" id="new-name" placeholder="الاسم">
+                    <input type="email" id="new-email" placeholder="الإيميل">
+                </div>
+                <input type="password" id="new-pass" placeholder="كلمة المرور">
+                <button class="btn-main" onclick="addNewModerator()">إضافة المشرف +</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الرتبة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="staff-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    
+    // محاكاة الحصول على بيانات الشخص المسجل (سنربطها لاحقاً بنظام Login)
+    // حالياً سنفترض أننا نبحث عن الشخص عبر الإيميل المخزن في السجل
+    let loggedInEmail = localStorage.getItem('loggedEmail') || 'admin@store.com'; 
+    let myId = null;
+
+    async function init() {
+        const { data: user, error } = await _supabase.from('staff').select('*').eq('email', loggedInEmail).single();
+        
+        if (user) {
+            myId = user.id;
+            document.getElementById('my-name').value = user.full_name;
+            document.getElementById('my-email').value = user.email;
+            document.getElementById('my-pass').value = user.password;
+
+            // إذا لم يكن مديراً، نخفي قسم الإدارة
+            if (user.role !== 'admin') {
+                document.getElementById('admin-section').style.opacity = "0.5";
+                document.getElementById('admin-section').style.pointerEvents = "none";
+            } else {
+                loadAllStaff();
+            }
+        }
+    }
+
+    // تحديث بياناتي الشخصية
+    async function updateMyAccount() {
+        const newName = document.getElementById('my-name').value;
+        const newEmail = document.getElementById('my-email').value;
+        const newPass = document.getElementById('my-pass').value;
+
+        const { error } = await _supabase.from('staff')
+            .update({ full_name: newName, email: newEmail, password: newPass })
+            .eq('id', myId);
+
+        const msg = document.getElementById('update-msg');
+        if (!error) {
+            msg.innerText = "تم تحديث بياناتك بنجاح! 🎉";
+            msg.style.color = "green";
+            localStorage.setItem('loggedEmail', newEmail);
+        } else {
+            msg.innerText = "فشل التحديث: " + error.message;
+            msg.style.color = "red";
+        }
+    }
+
+    // تحميل قائمة الطاقم (للمدير)
+    async function loadAllStaff() {
+        const { data: staff } = await _supabase.from('staff').select('*');
+        const tbody = document.getElementById('staff-table-body');
+        tbody.innerHTML = staff.map(s => `
+            <tr>
+                <td>${s.full_name} ${s.id === myId ? '<span class="my-account-tag">أنا</span>' : ''}</td>
+                <td>${s.role === 'admin' ? '👑 مدير' : '👷 مشرف'}</td>
+                <td>
+                    ${(s.role !== 'admin' && s.id !== myId) ? `<button class="btn-del" onclick="deleteStaff(${s.id})">إزالة</button>` : '---'}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // إضافة مشرف جديد
+    async function addNewModerator() {
+        const n = document.getElementById('new-name').value;
+        const e = document.getElementById('new-email').value;
+        const p = document.getElementById('new-pass').value;
+
+        if(!n || !e || !p) return alert("يرجى تعبئة جميع الخانات");
+
+        const { error } = await _supabase.from('staff').insert([{
+            full_name: n, email: e, password: p, role: 'moderator'
+        }]);
+
+        if(!error) { alert("تمت إضافة المشرف!"); location.reload(); }
+        else alert("خطأ: " + error.message);
+    }
+
+    // حذف مشرف
+    async function deleteStaff(id) {
+        if(confirm("هل أنت متأكد من حذف هذا المشرف؟")) {
+            await _supabase.from('staff').delete().eq('id', id);
+            loadAllStaff();
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
