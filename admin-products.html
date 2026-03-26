@@ -2,97 +2,116 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة المنتجات | رفع احترافي</title>
+    <title>إدارة منتجات المقر الملكي 📦</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --main: #3b82f6; --dark: #1e293b; --bg: #f1f5f9; }
+        :root { --royal: #1e293b; --gold: #c5a059; --danger: #ef4444; --bg: #f8fafc; }
         body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
-        .admin-header { background: var(--dark); color: white; padding: 20px; text-align: center; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .container { max-width: 1000px; margin: 20px auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; padding: 0 20px; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        input, select, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .upload-btn { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 20px; text-align: center; cursor: pointer; border-radius: 10px; }
-        .btn-save { background: var(--main); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #img-preview { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-add { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        
+        /* قائمة المنتجات */
+        .p-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; background: white; border-radius: 10px; margin-bottom: 10px; }
+        .p-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .p-actions { margin-right: auto; display: flex; gap: 10px; }
+        .btn-del { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-edit { background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="admin-header">
-    <h1>📦 إضافة منتجات بالصور</h1>
-    <a href="admin.html" style="color: #94a3b8; text-decoration: none;">العودة للرئيسية</a>
+    <h1>📦 إدارة منتجات المتجر الملكي</h1>
+    <button onclick="location.href='admin.html'" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">العودة للوحة التحكم</button>
 </div>
 
 <div class="container">
     <div class="card">
-        <h3>➕ إضافة منتج</h3>
-        <input type="text" id="p-name" placeholder="اسم المنتج">
+        <h3>➕ إضافة منتج جديد</h3>
+        <input type="text" id="p-name" placeholder="اسم المنتج (مثال: شحن 1000 جوهرة)">
         <input type="number" id="p-price" placeholder="السعر">
         
-        <div class="upload-btn" onclick="document.getElementById('file-input').click()">
-            <span id="status-text">🖼️ اضغط لرفع صورة المنتج</span>
-            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
+        <div style="border: 2px dashed #ddd; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer;" onclick="document.getElementById('f-input').click()">
+            <span id="u-status">🖼️ اضغط لرفع صورة المنتج</span>
+            <input type="file" id="f-input" hidden accept="image/*" onchange="uploadProductImg(this)">
         </div>
-        <img id="img-preview">
         <input type="hidden" id="p-img-url">
+        <img id="p-preview" style="width:100%; margin-top:10px; border-radius:10px; display:none;">
 
-        <textarea id="p-desc" placeholder="وصف قصير"></textarea>
-        <button class="btn-save" onclick="saveProduct()">إضافة المنتج للمتجر ✅</button>
+        <textarea id="p-desc" placeholder="وصف المنتج..."></textarea>
+        <button class="btn-add" onclick="saveProduct()">نشر المنتج في المتجر ✅</button>
     </div>
 
-    <div class="card">
-        <h3>📦 المنتجات الحالية</h3>
-        <div id="products-list"></div>
+    <div>
+        <h3>📋 المنتجات الحالية في المقر</h3>
+        <div id="products-list">
+            </div>
     </div>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-    async function uploadImage(input) {
+    // 1. رفع الصورة
+    async function uploadProductImg(input) {
         const file = input.files[0];
         if(!file) return;
-
-        document.getElementById('status-text').innerText = "جاري الرفع... ⏳";
-        const fileName = `prod_${Date.now()}.${file.name.split('.').pop()}`;
-
-        // الرفع لـ Supabase Storage
+        document.getElementById('u-status').innerText = "جاري الرفع... ⏳";
+        
+        const fileName = `prod_${Date.now()}.png`;
         const { data, error } = await _supabase.storage.from('store-assets').upload(fileName, file);
 
-        if(error) {
-            alert("خطأ في الرفع: " + error.message);
-        } else {
+        if(!error) {
             const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(fileName);
             document.getElementById('p-img-url').value = publicUrl;
-            document.getElementById('img-preview').src = publicUrl;
-            document.getElementById('img-preview').style.display = 'block';
-            document.getElementById('status-text').innerText = "تم الرفع ✅";
+            document.getElementById('p-preview').src = publicUrl;
+            document.getElementById('p-preview').style.display = 'block';
+            document.getElementById('u-status').innerText = "تم رفع الصورة ✅";
         }
     }
 
+    // 2. حفظ المنتج
     async function saveProduct() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
         const img = document.getElementById('p-img-url').value;
 
-        if(!name || !price || !img) return alert("أكمل البيانات والصورة!");
+        if(!name || !price || !img) return alert("أكمل البيانات والصورة أولاً!");
 
-        await _supabase.from('products').insert([{
-            name, price: parseFloat(price), image_url: img, status: 'active', description: document.getElementById('p-desc').value
+        const { error } = await _supabase.from('products').insert([{
+            name, price: parseFloat(price), image_url: img, description: document.getElementById('p-desc').value, status: 'active'
         }]);
-        
-        location.reload(); // تحديث القائمة
+
+        if(!error) { alert("تمت الإضافة!"); location.reload(); }
+        else { alert("خطأ: " + error.message); }
     }
 
-    // وظيفة لعرض المنتجات (اختصارا)
+    // 3. حذف المنتج
+    async function deleteProduct(id) {
+        if(!confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) return;
+        const { error } = await _supabase.from('products').delete().eq('id', id);
+        if(!error) location.reload();
+    }
+
+    // 4. تحميل المنتجات
     async function load() {
-        const { data } = await _supabase.from('products').select('*').order('id', {ascending:false});
+        const { data } = await _supabase.from('products').select('*').order('id', {ascending: false});
         document.getElementById('products-list').innerHTML = data.map(p => `
-            <div style="display:flex; gap:10px; border-bottom:1px solid #eee; padding:10px 0;">
-                <img src="${p.image_url}" style="width:50px; height:50px; border-radius:5px; object-fit:cover;">
-                <div><b>${p.name}</b><br><small>${p.price}${CONFIG.CURRENCY}</small></div>
-            </div>`).join('');
+            <div class="p-item">
+                <img src="${p.image_url}">
+                <div>
+                    <b>${p.name}</b><br>
+                    <small>${p.price} ${CONFIG.CURRENCY}</small>
+                </div>
+                <div class="p-actions">
+                    <button class="btn-del" onclick="deleteProduct(${p.id})">🗑️ حذف</button>
+                </div>
+            </div>
+        `).join('');
     }
     load();
 </script>
