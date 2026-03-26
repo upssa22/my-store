@@ -2,199 +2,80 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم مونوپولي الشاملة ⚙️</title>
+    <title>لوحة تحكم مونوپولي ستور ⚙️</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --main: #0088cc; --dark: #2c3e50; --danger: #e74c3c; --success: #27ae60; --bg: #f4f7f6; }
+        :root { --main: #0088cc; --dark: #2c3e50; --bg: #f0f2f5; }
         body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        .header { background: var(--dark); color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         
-        /* شاشة الدخول */
-        #login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--dark); }
-        .login-box { background: white; padding: 40px; border-radius: 20px; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* شبكة الأزرار الاحترافية */
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .menu-card { 
+            background: white; padding: 30px; border-radius: 20px; text-align: center; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s;
+            border: 1px solid transparent;
+        }
+        .menu-card:hover { transform: translateY(-10px); border-color: var(--main); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .menu-card i { font-size: 40px; display: block; margin-bottom: 15px; }
+        .menu-card h3 { margin: 0; color: var(--dark); }
         
-        /* الهيكل الرئيسي */
-        #main-panel { display: none; }
-        .sidebar { width: 250px; height: 100vh; background: var(--dark); color: white; position: fixed; right: 0; top: 0; padding: 20px; box-sizing: border-box; }
-        .sidebar h2 { color: var(--main); text-align: center; margin-bottom: 30px; }
-        .sidebar button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 10px; background: transparent; color: #bdc3c7; text-align: right; cursor: pointer; transition: 0.3s; }
-        .sidebar button:hover, .sidebar button.active { background: #34495e; color: white; }
-        
-        .content { margin-right: 250px; padding: 30px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
-        /* التبويبات */
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .active-tab { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* المدخلات والجداول */
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-main { background: var(--main); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        th { color: var(--main); background: #fafafa; }
-        .badge { padding: 4px 8px; border-radius: 5px; color: white; font-size: 11px; }
+        .stats-bar { display: flex; gap: 15px; margin-bottom: 30px; }
+        .stat-item { background: white; padding: 15px; border-radius: 12px; flex: 1; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-box">
-        <h2>دخول الإدارة 🔒</h2>
-        <input type="email" id="l-email" placeholder="البريد الإلكتروني">
-        <input type="password" id="l-pass" placeholder="كلمة المرور">
-        <button class="btn-main" onclick="attemptLogin()">دخول آمن</button>
-    </div>
-</div>
-
-<div id="main-panel">
-    <div class="sidebar">
-        <h2>مونوپولي ستور</h2>
-        <p id="st-name-display" style="text-align: center; font-size: 14px; color: #aaa;"></p>
-        <hr style="border: 0.5px solid #444; margin: 20px 0;">
-        <button onclick="showTab('tab-prod', this)" class="active">📦 المنتجات</button>
-        <button onclick="showTab('tab-sales', this)">🧾 المبيعات</button>
-        <button onclick="showTab('tab-users', this)">👥 الزبائن</button>
-        <button id="nav-staff" onclick="showTab('tab-staff', this)" style="display:none;">👮 المشرفين</button>
-        <button onclick="location.reload()" style="color: #e74c3c; margin-top: 50px;">تسجيل خروج 📤</button>
+    <div class="header">
+        <h1>لوحة الإدارة الرئيسية 👑</h1>
+        <p>مرحباً بك في نظام إدارة متجر مونوپولي</p>
     </div>
 
-    <div class="content">
-        <div id="tab-prod" class="tab-content active-tab">
-            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
-                <div class="card">
-                    <h3>➕ إضافة منتج</h3>
-                    <input type="text" id="p-name" placeholder="اسم المنتج">
-                    <select id="p-cat"><option>ملصقات</option><option>شحن</option><option>حسابات</option></select>
-                    <input type="number" id="p-price" placeholder="السعر">
-                    <input type="text" id="p-img" placeholder="رابط الصورة">
-                    <input type="text" id="p-req" placeholder="الخانات المطلوبة (الاسم, الايدي)">
-                    <textarea id="p-desc" placeholder="وصف المنتج (رابط فيديو المساعدة هنا)"></textarea>
-                    <button class="btn-main" onclick="saveProduct()">نشر المنتج ✅</button>
-                </div>
-                <div class="card">
-                    <h3>📦 قائمة المنتجات الحالية</h3>
-                    <div id="prod-list-dom"></div>
-                </div>
-            </div>
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat-item">📦 المنتجات: <span id="p-count">0</span></div>
+            <div class="stat-item">👥 الزبائن: <span id="u-count">0</span></div>
+            <div class="stat-item" style="color: green;">💰 المبيعات: <span id="s-count">0$</span></div>
         </div>
 
-        <div id="tab-staff" class="tab-content">
-            <div class="card">
-                <h3>👮 إضافة مشرف جديد</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                    <input type="text" id="st-full" placeholder="الاسم الكامل">
-                    <input type="email" id="st-email" placeholder="البريد الإلكتروني">
-                    <input type="password" id="st-pass" placeholder="كلمة المرور">
-                </div>
-                <div style="margin: 10px 0;">
-                    <label><input type="checkbox" id="can-del"> حذف منتجات</label>
-                    <label style="margin-right:20px;"><input type="checkbox" id="can-pts" checked> تعديل نرد الزبائن</label>
-                </div>
-                <button class="btn-main" onclick="addNewStaff()">إضافة طاقم عمل +</button>
+        <div class="admin-grid">
+            <div class="menu-card" onclick="location.href='admin-products.html'">
+                <i>📦</i>
+                <h3>إدارة المنتجات</h3>
             </div>
-            <div class="card">
-                <h3>👥 طاقم العمل الحالي</h3>
-                <table id="staff-table">
-                    <thead><tr><th>الاسم</th><th>البريد</th><th>الرتبة</th><th>إجراءات</th></tr></thead>
-                    <tbody id="staff-list-dom"></tbody>
-                </table>
+            <div class="menu-card" onclick="location.href='admin-users.html'">
+                <i>👥</i>
+                <h3>نقاط الولاء والزبائن</h3>
+            </div>
+            <div class="menu-card" onclick="location.href='admin-sales.html'">
+                <i>🧾</i>
+                <h3>سجل المبيعات</h3>
+            </div>
+            <div class="menu-card" onclick="location.href='admin-staff.html'">
+                <i>👮</i>
+                <h3>المشرفين والصلاحيات</h3>
             </div>
         </div>
-
-        <div id="tab-users" class="tab-content card"><h3>👥 إدارة الزبائن</h3><div id="user-list-dom"></div></div>
-        <div id="tab-sales" class="tab-content card"><h3>🧾 سجل المبيعات</h3><div id="sales-list-dom"></div></div>
+        
+        <button onclick="location.reload()" style="margin-top:40px; width:100%; padding:15px; border-radius:10px; border:none; background:#e74c3c; color:white; font-weight:bold; cursor:pointer;">تسجيل الخروج</button>
     </div>
-</div>
 
-<script>
-    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
-    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
-    const _supabase = supabase.createClient(S_URL, S_KEY);
+    <script>
+        const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
+        const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
+        const _supabase = supabase.createClient(S_URL, S_KEY);
 
-    let loggedStaff = null;
-
-    async function attemptLogin() {
-        const email = document.getElementById('l-email').value;
-        const pass = document.getElementById('l-pass').value;
-        const { data, error } = await _supabase.from('staff').select('*').eq('email', email).eq('password', pass).single();
-
-        if (error || !data) return alert("خطأ في بيانات الدخول!");
-
-        loggedStaff = data;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-panel').style.display = 'block';
-        document.getElementById('st-name-display').innerText = data.full_name;
-
-        if (data.role === 'admin') document.getElementById('nav-staff').style.display = 'block';
-        loadProducts();
-    }
-
-    function showTab(id, btn) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
-        document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active-tab');
-        btn.classList.add('active');
-        if(id === 'tab-staff') loadStaff();
-        if(id === 'tab-users') loadUsers();
-        if(id === 'tab-sales') loadSales();
-    }
-
-    // --- وظائف المنتجات ---
-    async function saveProduct() {
-        const { error } = await _supabase.from('products').insert([{
-            name: document.getElementById('p-name').value,
-            category: document.getElementById('p-cat').value,
-            price: parseFloat(document.getElementById('p-price').value),
-            image_url: document.getElementById('p-img').value,
-            required_fields: document.getElementById('p-req').value,
-            description: document.getElementById('p-desc').value,
-            status: loggedStaff.role === 'admin' ? 'active' : 'pending'
-        }]);
-        if(error) alert(error.message); else { alert("تم الحفظ!"); loadProducts(); }
-    }
-
-    async function loadProducts() {
-        const { data } = await _supabase.from('products').select('*').order('id', {ascending: false});
-        document.getElementById('prod-list-dom').innerHTML = data.map(i => `
-            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
-                <span>${i.name} (${i.status})</span>
-                ${loggedStaff.can_delete_product || loggedStaff.role==='admin' ? `<button onclick="delP(${i.id})" style="background:red; color:white; border:none; padding:4px; border-radius:5px;">حذف</button>` : ''}
-            </div>`).join('');
-    }
-    async function delP(id) { if(confirm("حذف؟")) { await _supabase.from('products').delete().eq('id',id); loadProducts(); } }
-
-    // --- وظائف المشرفين ---
-    async function loadStaff() {
-        const { data } = await _supabase.from('staff').select('*');
-        document.getElementById('staff-list-dom').innerHTML = data.map(s => `
-            <tr><td>${s.full_name}</td><td>${s.email}</td><td>${s.role}</td>
-            <td>${s.role !== 'admin' ? `<button onclick="delStaff(${s.id})" style="color:red">إزالة</button>` : '---'}</td></tr>`).join('');
-    }
-
-    async function addNewStaff() {
-        const { error } = await _supabase.from('staff').insert([{
-            full_name: document.getElementById('st-full').value,
-            email: document.getElementById('st-email').value,
-            password: document.getElementById('st-pass').value,
-            role: 'moderator',
-            can_delete_product: document.getElementById('can-del').checked,
-            can_edit_points: document.getElementById('can-pts').checked
-        }]);
-        if(!error) { alert("تمت إضافة المشرف!"); loadStaff(); }
-    }
-    async function delStaff(id) { await _supabase.from('staff').delete().eq('id',id); loadStaff(); }
-
-    // --- وظائف المبيعات والزبائن (مختصرة) ---
-    async function loadSales() {
-        const { data } = await _supabase.from('sales').select('*').order('id', {ascending:false});
-        document.getElementById('sales-list-dom').innerHTML = data.map(s => `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${s.product_name}</b> - ${s.customer_name}</div>`).join('');
-    }
-    async function loadUsers() {
-        const { data } = await _supabase.from('users').select('*');
-        document.getElementById('user-list-dom').innerHTML = data.map(u => `<div style="padding:10px; border-bottom:1px solid #eee;">${u.first_name} | النرد: <b>${u.points}</b></div>`).join('');
-    }
-</script>
+        async function loadStats() {
+            const { data: p } = await _supabase.from('products').select('*');
+            const { data: u } = await _supabase.from('users').select('*');
+            const { data: s } = await _supabase.from('sales').select('*');
+            
+            document.getElementById('p-count').innerText = p?.length || 0;
+            document.getElementById('u-count').innerText = u?.length || 0;
+            document.getElementById('s-count').innerText = (s?.reduce((a, b) => a + b.price, 0) || 0) + "$";
+        }
+        loadStats();
+    </script>
 </body>
 </html>
