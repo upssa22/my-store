@@ -2,139 +2,97 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إعدادات الواجهة | المتجر الملكي</title>
+    <title>إعدادات الواجهة الملكية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal-blue: #1a237e; --gold: #c5a059; --bg: #f5f6fa; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
-        .admin-header { background: var(--royal-blue); color: white; padding: 30px; text-align: center; border-bottom: 4px solid var(--gold); }
-        .container { max-width: 650px; margin: 30px auto; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        :root { --royal: #1a237e; --gold: #c5a059; --bg: #f5f6fa; }
+        body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
+        .admin-header { background: var(--royal); color: white; padding: 25px; text-align: center; border-bottom: 5px solid var(--gold); }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         
-        /* منطقة الرفع */
-        .upload-zone { border: 3px dashed var(--gold); padding: 40px; text-align: center; border-radius: 20px; cursor: pointer; transition: 0.3s; background: #fffcf5; }
-        .upload-zone:hover { background: #fdf5e6; border-color: var(--royal-blue); }
+        .back-btn { position: fixed; top: 15px; left: 15px; background: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 100; }
         
-        #preview-img { width: 100%; border-radius: 15px; margin-top: 20px; display: none; border: 2px solid var(--gold); }
+        .upload-zone { border: 3px dashed var(--gold); padding: 30px; text-align: center; border-radius: 15px; cursor: pointer; background: #fffcf5; margin: 20px 0; }
+        #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; border: 1px solid #ddd; }
         
-        .input-group { margin-top: 20px; }
-        input[type="text"], textarea { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-top: 8px; box-sizing: border-box; }
-        
-        .btn-save { background: var(--royal-blue); color: white; border: none; padding: 18px; width: 100%; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; margin-top: 25px; border-bottom: 4px solid #0d1250; }
-        .btn-save:active { transform: translateY(2px); border-bottom: 0; }
-        
-        .loader { display: none; color: var(--royal-blue); font-weight: bold; margin-top: 10px; }
+        .btn-save { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin: 10px 0; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
+<button class="back-btn" onclick="location.href='admin.html'">⬅️ رجوع للوحة التحكم</button>
+
 <div class="admin-header">
-    <h1>🎨 التحكم في واجهة الانتظار</h1>
-    <p>ارفع شعار "انتظرونا" وتحكم في الرسالة التي يراها الجمهور</p>
+    <h1>🎨 مظهر المقر الملكي</h1>
 </div>
 
 <div class="container">
     <div class="card">
-        <label style="display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 25px;">
-            <span>🔓 تفعيل وضع الانتظار (إغلاق المتجر)</span>
-            <input type="checkbox" id="m-mode" style="width: 25px; height: 25px;">
+        <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+            <b>🔒 وضع الانتظار (إغلاق المتجر):</b>
+            <input type="checkbox" id="m-mode" style="width:25px; height:25px;">
         </label>
 
         <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-            <div id="upload-placeholder">
-                <span style="font-size: 50px;">🖼️</span>
-                <p>اضغط هنا لرفع بانر "انتظرونا" المطور</p>
-                <small style="color: #888;">يفضل مقاس عرضي (1280x720)</small>
-            </div>
-            <div id="loading-spinner" class="loader">جاري الرفع للمخزن الملكي... ⏳</div>
-            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadToStorage(this)">
+            <div id="u-text">🖼️ اضغط لرفع بانر "انتظرونا" المطور</div>
+            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImage(this)">
         </div>
 
-        <img id="preview-img" src="">
-        <input type="hidden" id="final-img-url">
+        <img id="preview" src="">
+        <input type="hidden" id="img-url">
 
-        <div class="input-group">
-            <label>💬 رسالة الواجهة الرئيسية:</label>
-            <input type="text" id="m-text" placeholder="مثال: انتظرونا بحلة جديدة.. نحن نجهز المفاجأة!">
-        </div>
+        <label>📝 نص الرسالة للجمهور:</label>
+        <input type="text" id="m-text" placeholder="مثال: انتظرونا بحلة جديدة...">
 
-        <button class="btn-save" onclick="saveSettings()">اعتماد ونشر الواجهة الجديدة 🚀</button>
+        <button class="btn-save" onclick="save()">حفظ ونشر التعديلات ✅</button>
     </div>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-    // 1. جلب البيانات عند فتح الصفحة
-    async function init() {
+    async function load() {
         const { data } = await _supabase.from('store_settings').select('*').eq('id', 1).single();
-        if (data) {
+        if(data) {
             document.getElementById('m-mode').checked = data.maintenance_mode;
             document.getElementById('m-text').value = data.maintenance_text;
-            if (data.maintenance_image) {
-                showPreview(data.maintenance_image);
-                document.getElementById('final-img-url').value = data.maintenance_image;
+            if(data.maintenance_image) {
+                document.getElementById('preview').src = data.maintenance_image;
+                document.getElementById('preview').style.display = 'block';
+                document.getElementById('img-url').value = data.maintenance_image;
             }
         }
     }
 
-    // 2. وظيفة الرفع لـ Supabase Storage
-    async function uploadToStorage(input) {
+    async function uploadImage(input) {
         const file = input.files[0];
-        if (!file) return;
+        if(!file) return;
+        document.getElementById('u-text').innerText = "جاري الرفع... ⏳";
+        
+        const fileName = `banner_${Date.now()}.png`;
+        const { data, error } = await _supabase.storage.from('store-assets').upload(fileName, file);
 
-        // إظهار اللودر
-        document.getElementById('upload-placeholder').style.display = 'none';
-        document.getElementById('loading-spinner').style.display = 'block';
-
-        const fileExt = file.name.split('.').pop();
-        const fileName = `banner_${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        // الرفع لمجلد store-assets
-        const { data, error } = await _supabase.storage
-            .from('store-assets')
-            .upload(filePath, file);
-
-        if (error) {
-            alert("خطأ في الرفع: " + error.message);
-            resetUpload();
-        } else {
-            // جلب الرابط العام
-            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(filePath);
-            
-            document.getElementById('final-img-url').value = publicUrl;
-            showPreview(publicUrl);
-            document.getElementById('loading-spinner').style.display = 'none';
+        if(!error) {
+            const { data: { publicUrl } } = _supabase.storage.from('store-assets').getPublicUrl(fileName);
+            document.getElementById('img-url').value = publicUrl;
+            document.getElementById('preview').src = publicUrl;
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('u-text').innerText = "تم الرفع بنجاح ✅";
         }
     }
 
-    function showPreview(url) {
-        const img = document.getElementById('preview-img');
-        img.src = url;
-        img.style.display = 'block';
-        document.getElementById('upload-placeholder').style.display = 'none';
-    }
-
-    function resetUpload() {
-        document.getElementById('upload-placeholder').style.display = 'block';
-        document.getElementById('loading-spinner').style.display = 'none';
-    }
-
-    // 3. حفظ الإعدادات النهائية في الجدول
-    async function saveSettings() {
-        const { error } = await _supabase.from('store_settings').update({
+    async function save() {
+        await _supabase.from('store_settings').update({
             maintenance_mode: document.getElementById('m-mode').checked,
-            maintenance_image: document.getElementById('final-img-url').value,
-            maintenance_text: document.getElementById('m-text').value
+            maintenance_text: document.getElementById('m-text').value,
+            maintenance_image: document.getElementById('img-url').value
         }).eq('id', 1);
-
-        if (error) alert("فشل الحفظ: " + error.message);
-        else alert("تم تحديث واجهة المتجر بنجاح! 🎉");
+        alert("تم تحديث الواجهة بنجاح!");
     }
-
-    init();
+    load();
 </script>
 </body>
 </html>
