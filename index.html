@@ -1,24 +1,54 @@
-async function init() {
-    const tg = window.Telegram.WebApp;
-    const user = tg.initDataUnsafe.user;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المتجر الرسمي | ون بيس</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --main: #0088cc; --bg: #f8f9fb; --card: #ffffff; --text: #2c3e50; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 30px; direction: rtl; color: var(--text); -webkit-tap-highlight-color: transparent; }
+        
+        /* شاشة الصيانة / الحماية */
+        #maintenance-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #2c3e50; color: white; text-align: center; padding: 20px; box-sizing: border-box; }
+        .lock-icon { font-size: 80px; margin-bottom: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-    // 🔒 نظام القفل الديناميكي
-    const { data: isAllowed } = await _supabase
-        .from('whitelist')
-        .select('*')
-        .eq('telegram_id', user ? user.id : 0)
-        .single();
+        /* الهيكل الرئيسي */
+        #main-content { display: none; }
+        .header { background: var(--card); padding: 25px 20px; text-align: center; box-shadow: 0 2px 15px rgba(0,0,0,0.04); border-radius: 0 0 30px 30px; margin-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 22px; color: var(--main); font-weight: 800; }
 
-    if (!isAllowed) {
-        document.getElementById('main-content').style.display = 'none';
-        document.getElementById('maintenance-screen').style.display = 'flex';
-        // يمكنك إظهار الـ ID الخاص به لكي يرسله لك وتضيفه
-        document.getElementById('maintenance-screen').innerHTML += 
-            `<small style="margin-top:20px; color:#bdc3c7;">ID الخاص بك: ${user ? user.id : 'غير معروف'}</small>`;
-        return;
-    }
+        /* شبكة المنتجات */
+        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .product-card { background: var(--card); border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; position: relative; }
+        .product-card:active { transform: scale(0.95); }
+        .product-card img { width: 100%; height: 140px; object-fit: cover; }
+        .product-info { padding: 12px; text-align: center; }
+        .product-info h3 { margin: 0; font-size: 14px; height: 38px; overflow: hidden; color: var(--text); }
+        .product-price { color: #27ae60; font-weight: bold; font-size: 17px; margin-top: 8px; display: block; }
 
-    // إذا كان موجوداً في القائمة البيضاء، يفتح المتجر
-    document.getElementById('store-title').innerText = CONFIG.STORE_NAME;
-    // ... استكمال جلب المنتجات ...
-}
+        /* صفحة التفاصيل */
+        .page { display: none; padding: 0; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; overflow-y: auto; }
+        .active-page { display: block; }
+        .detail-img { width: 100%; height: 250px; object-fit: cover; }
+        .detail-card { background: var(--card); border-radius: 30px 30px 0 0; padding: 30px 20px; margin-top: -30px; position: relative; min-height: 80vh; }
+        
+        /* المدخلات */
+        .input-group input { width: 100%; padding: 16px; margin: 12px 0; border-radius: 15px; border: 1.5px solid #eee; background: #fafafa; font-size: 16px; outline: none; box-sizing: border-box; }
+        .input-group input:focus { border-color: var(--main); background: #fff; }
+        .btn-back { width: 100%; padding: 15px; border: none; border-radius: 15px; background: #f1f2f6; color: #57606f; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="maintenance-screen">
+        <div class="lock-icon">🔒</div>
+        <h2 id="m-title">المتجر قيد التجهيز</h2>
+        <p>عذراً، هذا المتجر متاح حالياً للمطورين والمختبرين فقط.</p>
+        <div id="user-id-box" style="margin-top:20px; padding:10px 20px; background:rgba(255,255,255,0.1); border-radius:10px; font-size:13px; color:#bdc3c7;">
+            جاري جلب معرفك...
+        </div>
+    </div>
