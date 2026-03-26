@@ -2,28 +2,62 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الأمان والطاقم</title>
+    <title>إدارة الطاقم | ون بيس</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
+    <style>
+        :root { --dark: #2c3e50; --main: #3498db; --bg: #f4f7f6; }
+        body { margin: 0; font-family: system-ui; background: var(--bg); direction: rtl; }
+        .admin-header { background: var(--dark); color: white; padding: 25px 0; text-align: center; }
+        .breadcrumb { margin-top: 10px; font-size: 14px; color: #bdc3c7; }
+        .breadcrumb a { color: var(--main); text-decoration: none; font-weight: bold; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn { background: var(--main); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; }
+    </style>
 </head>
-<body style="font-family:system-ui; background:#f4f7f6; padding:20px; direction:rtl;">
-    <a href="admin.html">← عودة</a>
-    <div style="background:white; padding:20px; border-radius:15px; margin-top:20px;">
+<body>
+
+<div class="admin-header">
+    <h1 onclick="location.href='admin.html'" style="cursor:pointer; margin:0;">متجر ون بيس</h1>
+    <div class="breadcrumb"><a href="admin.html">الرئيسية</a> / <span>إدارة الطاقم 👮</span></div>
+</div>
+
+<div class="container">
+    <div class="card">
         <h2>👤 إعدادات حسابي</h2>
-        <input type="text" id="my-name" placeholder="الاسم" style="display:block; width:100%; padding:10px; margin:5px 0;">
-        <input type="password" id="my-pass" placeholder="كلمة مرور جديدة" style="display:block; width:100%; padding:10px; margin:5px 0;">
-        <button onclick="update()" style="width:100%; padding:10px; background:green; color:white; border:none; border-radius:10px; cursor:pointer;">تحديث بياناتي 🔒</button>
+        <input type="text" id="my-name" placeholder="الاسم الكامل">
+        <input type="password" id="my-pass" placeholder="كلمة مرور جديدة">
+        <button class="btn" onclick="updateMe()" style="background:#2ecc71;">تحديث بياناتي ✅</button>
     </div>
-    <script>
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-        // ملاحظة: يتم جلب الـ ID من نظام تسجيل الدخول لاحقاً
-        async function update() {
-            const { error } = await _supabase.from('staff').update({
-                full_name: document.getElementById('my-name').value,
-                password: document.getElementById('my-pass').value
-            }).eq('email', 'admin@store.com'); // مثال
-            if(!error) alert("تم التحديث!");
-        }
-    </script>
+    <div class="card">
+        <h2>👮 إضافة مشرف جديد</h2>
+        <input type="text" id="st-name" placeholder="الاسم">
+        <input type="email" id="st-email" placeholder="البريد">
+        <input type="password" id="st-pass" placeholder="كلمة المرور">
+        <button class="btn" onclick="addStaff()">إضافة للطاقم +</button>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    async function updateMe() {
+        await _supabase.from('staff').update({
+            full_name: document.getElementById('my-name').value,
+            password: document.getElementById('my-pass').value
+        }).eq('email', 'admin@store.com'); // سيتم ربطها بنظام الدخول لاحقاً
+        alert("تم التحديث!");
+    }
+    async function addStaff() {
+        await _supabase.from('staff').insert([{
+            full_name: document.getElementById('st-name').value,
+            email: document.getElementById('st-email').value,
+            password: document.getElementById('st-pass').value,
+            role: 'moderator'
+        }]);
+        alert("تمت الإضافة!");
+    }
+</script>
 </body>
 </html>
