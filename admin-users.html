@@ -2,77 +2,60 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة الزبائن | نقاط الولاء 👥</title>
+    <title>إدارة الزبائن | مونوپولي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <link rel="stylesheet" href="admin-style.css"> <style>
-        body { font-family: system-ui, sans-serif; background: #f4f7f6; padding: 20px; direction: rtl; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    <script src="js/app-config.js"></script> <style>
+        :root { --main: #0088cc; --dark: #2c3e50; --bg: #f4f7f6; }
+        body { font-family: system-ui; background: var(--bg); padding: 20px; direction: rtl; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #0088cc; color: white; }
-        .btn-points { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .nav-back { margin-bottom: 20px; display: block; color: #0088cc; text-decoration: none; font-weight: bold; }
+        th { background: var(--main); color: white; }
+        .btn-edit { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
+    <a href="admin.html" style="text-decoration:none; color:var(--main); font-weight:bold;">← العودة للرئيسية</a>
 
-    <a href="admin.html" class="nav-back">← العودة للوحة الرئيسية</a>
-
-    <div class="card">
-        <h2>👥 إدارة حسابات الزبائن (نقاط الولاء)</h2>
-        <p>ملاحظة: نظام النقاط يعمل حالياً في الخلفية ومخفي عن الزبائن.</p>
-        
-        <input type="text" id="userSearch" placeholder="ابحث عن لاعب (اسم أو ID)..." oninput="searchUsers()" style="width:100%; padding:10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd;">
-
+    <div class="card" style="margin-top:20px;">
+        <h2 id="page-title">إدارة الزبائن</h2>
         <table>
             <thead>
                 <tr>
                     <th>الاسم</th>
                     <th>ID التلجرام</th>
-                    <th>نقاط الولاء ⭐</th>
+                    <th id="points-head">النقاط</th>
                     <th>إجراءات</th>
                 </tr>
             </thead>
-            <tbody id="user-table-body">
-                <tr><td colspan="4" style="text-align:center;">جاري جلب البيانات...</td></tr>
-            </tbody>
+            <tbody id="user-list"></tbody>
         </table>
     </div>
 
 <script>
-    const S_URL = 'https://roljlpmrgkuzeumviobn.supabase.co';
-    const S_KEY = 'sb_publishable_mEf2kXqJsivTvismRbM8cQ_RGeuii9q';
-    const _supabase = supabase.createClient(S_URL, S_KEY);
+    // استخدام الإعدادات الموحدة
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    document.getElementById('points-head').innerText = CONFIG.POINTS_NAME;
 
-    async function loadUsers() {
-        const { data, error } = await _supabase.from('users').select('*').order('created_at', {ascending: false});
-        if (error) return;
-        renderUsers(data);
-    }
-
-    function renderUsers(data) {
-        const table = document.getElementById('user-table-body');
-        table.innerHTML = data.map(u => `
+    async function load() {
+        const { data } = await _supabase.from('users').select('*').order('created_at', {ascending: false});
+        document.getElementById('user-list').innerHTML = data.map(u => `
             <tr>
                 <td>${u.first_name}</td>
                 <td>${u.telegram_id}</td>
-                <td><b style="color:#27ae60">${u.points}</b> نقطة</td>
-                <td>
-                    <button class="btn-points" onclick="updateLoyalty(${u.telegram_id}, ${u.points})">تعديل النقاط</button>
-                </td>
-            </tr>
-        `).join('');
+                <td><b>${u.points}</b></td>
+                <td><button class="btn-edit" onclick="update(${u.telegram_id}, ${u.points})">تعديل</button></td>
+            </tr>`).join('');
     }
 
-    async function updateLoyalty(tid, current) {
-        const newVal = prompt("أدخل رصيد نقاط الولاء الجديد:", current);
-        if (newVal !== null) {
-            await _supabase.from('users').update({ points: parseInt(newVal) }).eq('telegram_id', tid);
-            loadUsers();
+    async function update(tid, cur) {
+        const val = prompt(`أدخل رصيد ${CONFIG.POINTS_NAME} الجديد:`, cur);
+        if(val !== null) {
+            await _supabase.from('users').update({ points: parseInt(val) }).eq('telegram_id', tid);
+            load();
         }
     }
-
-    loadUsers();
+    load();
 </script>
 </body>
 </html>
