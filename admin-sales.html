@@ -2,32 +2,42 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>سجل المبيعات | مونوپولي</title>
+    <title>سجل المبيعات | ون بيس</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        body { font-family: system-ui; background: #f4f7f6; padding: 20px; direction: rtl; }
-        .sale-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 5px solid #0088cc; }
-        .price-tag { color: green; font-weight: bold; float: left; }
+        :root { --dark: #2c3e50; --main: #3498db; --bg: #f4f7f6; }
+        body { margin: 0; font-family: system-ui; background: var(--bg); direction: rtl; }
+        .admin-header { background: var(--dark); color: white; padding: 25px 0; text-align: center; }
+        .breadcrumb { margin-top: 10px; font-size: 14px; color: #bdc3c7; }
+        .breadcrumb a { color: var(--main); text-decoration: none; font-weight: bold; }
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .sale-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--main); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .price { float: left; color: #27ae60; font-weight: bold; font-size: 18px; }
     </style>
 </head>
 <body>
-    <a href="admin.html" style="text-decoration:none; color:#0088cc; font-weight:bold;">← الرئيسية</a>
-    <h2>🧾 سجل المبيعات الأخير</h2>
-    <div id="sales-container"></div>
+
+<div class="admin-header">
+    <h1 onclick="location.href='admin.html'" style="cursor:pointer; margin:0;">متجر ون بيس</h1>
+    <div class="breadcrumb"><a href="admin.html">الرئيسية</a> / <span>سجل المبيعات 🧾</span></div>
+</div>
+
+<div class="container">
+    <h2>🧾 سجل الطلبات الأخيرة</h2>
+    <div id="sales-list">جاري التحميل...</div>
+</div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-
     async function load() {
-        const { data, error } = await _supabase.from('sales').select('*').order('created_at', {ascending: false});
-        if(error) return document.getElementById('sales-container').innerText = "عذراً، لا تملك صلاحية الوصول لهذه البيانات.";
-        
-        document.getElementById('sales-container').innerHTML = data.map(s => `
+        const { data } = await _supabase.from('sales').select('*').order('created_at', {ascending: false});
+        document.getElementById('sales-list').innerHTML = data.map(s => `
             <div class="sale-card">
-                <span class="price-tag">${s.price}${CONFIG.CURRENCY}</span>
+                <span class="price">${s.price}${CONFIG.CURRENCY}</span>
                 <b>📦 ${s.product_name}</b><br>
-                <small>👤 العميل: ${s.customer_name} | 📝: ${s.details}</small>
+                <small>👤 ${s.customer_name} | 📝 ${s.details}</small><br>
+                <span style="font-size:11px; color:gray;">📅 ${new Date(s.created_at).toLocaleString('ar-EG')}</span>
             </div>`).join('');
     }
     load();
