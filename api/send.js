@@ -1,37 +1,24 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
 export default async function handler(req, res) {
-    // التأكد من أن الإرسال يتم عبر POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    // 1. جلب إعدادات الصيانة الحالية من قاعدة البيانات
+    const { data: settings } = await supabase
+        .from('store_settings')
+        .select('*')
+        .single();
 
-    const { message } = req.body;
-    const BOT_TOKEN = process.env.BOT_TOKEN;
-    const CHAT_ID = process.env.CHAT_ID;
-
-    // فحص سريع إذا كانت المتغيرات مفقودة
-    if (!BOT_TOKEN || !CHAT_ID) {
-        return res.status(500).json({ error: 'الرموز السرية BOT_TOKEN أو CHAT_ID غير موجودة في إعدادات Vercel' });
-    }
-
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
-            })
+    // 2. التحقق: إذا كان وضع الصيانة مفعلاً، ارفض الطلب فوراً
+    if (settings && settings.maintenance_mode) {
+        return res.status(503).json({ 
+            success: false, 
+            message: settings.maintenance_text || "المقر في صيانة حالياً." 
         });
-
-        const result = await response.json();
-        
-        if (result.ok) {
-            return res.status(200).json({ success: true });
-        } else {
-            return res.status(500).json({ error: 'Telegram API Error', details: result });
-        }
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
     }
+
+    // 3. إذا كانت الصيانة معطلة، أكمل كود إرسال الرسالة لتليجرام
+    // (هنا تضع كود إرسال الرسالة الخاص بك القديم)
+    
+    res.status(200).json({ success: true, message: "تم استقبال طلبك بنجاح!" });
 }
