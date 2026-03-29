@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات المتجر | الهوية والنطاق ⚙️</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        .nav-bar { background: white; padding: 15px 25px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .settings-card { background: white; max-width: 700px; margin: auto; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
+        .subdomain-input-wrapper { display: flex; align-items: center; direction: ltr; gap: 5px; }
+        .subdomain-input-wrapper input { text-align: right; flex: 1; }
+        .domain-suffix { color: #64748b; font-weight: bold; background: #f1f5f9; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; font-size: 1rem; transition: 0.3s; }
+        .btn-save:hover { background: #0f172a; transform: translateY(-2px); }
+        .tip { font-size: 0.8rem; color: #64748b; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <h2 style="margin:0;">⚙️ إعدادات المتجر والهوية</h2>
+    <a href="store-admin.html" style="text-decoration:none; color:var(--primary); font-weight:bold;">⬅️ العودة للوحة</a>
+</div>
+
+<div class="settings-card">
+    <div class="form-group">
+        <label>🏰 اسم المتجر التجاري:</label>
+        <input type="text" id="s-name" placeholder="مثال: متجر الصقر">
+    </div>
+
+    <div class="form-group">
+        <label>🌐 رابط المتجر الفرعي (Subdomain):</label>
+        <div class="subdomain-input-wrapper">
+            <span class="domain-suffix">.my-platform.com</span>
+            <input type="text" id="s-subdomain" placeholder="al-saqr">
+        </div>
+        <p class="tip">هذا هو الرابط الذي سيفتحه زبائنك للوصول لمتجرك.</p>
+    </div>
+
+    <div class="form-group">
+        <label>🤖 توكن بوت التليجرام الخاص بك:</label>
+        <input type="text" id="s-token" placeholder="12345678:ABC...">
+    </div>
+
+    <div class="form-group">
+        <label>🎨 لون هوية الموقع الرئيسية:</label>
+        <input type="color" id="s-color" style="height: 50px; cursor: pointer; padding: 2px;">
+    </div>
+
+    <button class="btn-save" onclick="updateSettings()">حفظ كافة التغييرات ✨</button>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    const storeId = sessionStorage.getItem('storeId');
+
+    if (!storeId) window.location.href = 'admin.html';
+
+    async function loadSettings() {
+        const { data: store } = await _supabase.from('stores').select('*').eq('id', storeId).single();
+        if (store) {
+            document.getElementById('s-name').value = store.store_name || '';
+            document.getElementById('s-token').value = store.bot_token || '';
+            document.getElementById('s-subdomain').value = store.custom_domain || ''; // نستخدم حقل الـ domain المخزن
+            document.getElementById('s-color').value = store.theme_color || '#1e293b';
+        }
+    }
+
+    async function updateSettings() {
+        const name = document.getElementById('s-name').value;
+        const token = document.getElementById('s-token').value;
+        const subdomain = document.getElementById('s-subdomain').value.toLowerCase().replace(/\s+/g, '-');
+        const color = document.getElementById('s-color').value;
+
+        // التحقق من عدم تكرار النطاق الفرعي
+        if (subdomain) {
+            const { data: check } = await _supabase.from('stores').select('id').eq('custom_domain', subdomain).neq('id', storeId).single();
+            if (check) return alert("هذا الرابط مستخدم من قبل متجر آخر، اختر اسماً آخر.");
+        }
+
+        const { error } = await _supabase.from('stores').update({
+            store_name: name,
+            bot_token: token,
+            custom_domain: subdomain,
+            theme_color: color
+        }).eq('id', storeId);
+
+        if (error) alert("فشل الحفظ: " + error.message);
+        else alert("تم تحديث إعدادات متجرك بنجاح! ✅");
+    }
+
+    loadSettings();
+</script>
+
+</body>
+</html>
