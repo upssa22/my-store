@@ -1,61 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>المقر الملكي للشحن 👑</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="js/app-config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المقر الملكي | تحت الصيانة ✨</title>
     <style>
-        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; direction: rtl; }
-        .nav { background: var(--royal-blue); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--royal-gold); }
-        .filter-nav { display: flex; justify-content: center; gap: 10px; padding: 20px; background: white; position: sticky; top: 0; z-index: 100; }
-        .filter-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; background: white; font-weight: bold; }
-        .filter-btn.active { background: var(--royal-gold); color: white; border-color: var(--royal-gold); }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: auto; }
-        .card { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 150px; object-fit: contain; }
-        .price { color: var(--royal-gold); font-weight: bold; font-size: 1.2rem; }
-        .buy-btn { background: var(--royal-blue); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        body { margin: 0; padding: 0; background: #1e293b; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .box { padding: 40px; border: 2px solid #c5a059; border-radius: 30px; background: rgba(255,255,255,0.03); max-width: 500px; }
+        .gold { color: #c5a059; font-size: 4rem; margin-bottom: 20px; }
+        h1 { margin: 10px 0; font-size: 2rem; }
+        p { color: #94a3b8; line-height: 1.6; }
+        .loader { width: 50px; height: 50px; border: 5px solid #94a3b8; border-top: 5px solid #c5a059; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="nav"><h1>🏰 المقر الملكي لشحن الملصقات</h1></div>
-    <div class="filter-nav">
-        <button class="filter-btn active" onclick="filterProducts('الكل')">الكل</button>
-        <button class="filter-btn" onclick="filterProducts('⭐ 4 نجوم')">4 نجوم</button>
-        <button class="filter-btn" onclick="filterProducts('⭐⭐ 5 نجوم')">5 نجوم</button>
-        <button class="filter-btn" onclick="filterProducts('🏆 ملصق ذهبي')">ذهبي</button>
+    <div class="box">
+        <div class="gold">🏰</div>
+        <h1>المقر الملكي في صيانة</h1>
+        <p>يا زائرنا الكريم، نحن نقوم الآن بتجهيز أحدث ملصقات منوبولي وتطوير المتجر لخدمتكم بشكل أفضل. سنعود قريباً جداً!</p>
+        <div class="loader"></div>
+        <p style="font-size: 0.8rem;">ترقبوا الافتتاح الكبير ✨</p>
     </div>
-    <div id="products-list" class="products-grid"></div>
-
-    <script>
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-        let allProducts = [];
-
-        async function load() {
-            const { data } = await _supabase.from('products').select('*').order('created_at', {ascending: false});
-            allProducts = data;
-            display(data);
-        }
-
-        function display(list) {
-            document.getElementById('products-list').innerHTML = list.map(p => `
-                <div class="card">
-                    <img src="${p.image_url}">
-                    <h3>${p.name}</h3>
-                    <div class="price">${p.price} ر.س</div>
-                    <button class="buy-btn" onclick="window.open('https://t.me/YOUR_BOT')">طلب عبر التليجرام 💬</button>
-                </div>
-            `).join('');
-        }
-
-        function filterProducts(cat) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if(cat === 'الكل') display(allProducts);
-            else display(allProducts.filter(p => p.category === cat));
-        }
-        load();
-    </script>
 </body>
 </html>
