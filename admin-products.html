@@ -1,96 +1,51 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المقر الملكي | النسخة المعتمدة</title>
+    <meta charset="UTF-8"><title>إدارة المنتجات 📦</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal: #1e293b; --gold: #c5a059; --accent: #3b82f6; --bg: #f1f5f9; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; direction: rtl; color: #334155; }
-        
-        /* الهيدر */
-        .admin-header { background: var(--royal); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--gold); position: sticky; top:0; z-index:100; }
-        .container { max-width: 1200px; margin: 20px auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 0 20px; }
-        
-        /* البطاقات */
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
-        
-        /* الأزرار */
-        .btn-blue { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .btn-gold { background: var(--gold); color: white; border: none; padding: 14px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 16px; }
-
-        /* الحقول الديناميكية */
-        .dynamic-field-row { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        .remove-field { position: absolute; top: 5px; left: 5px; color: #ef4444; cursor: pointer; font-size: 22px; font-weight: bold; width: 30px; height: 30px; text-align: center; }
-
-        /* قائمة المنتجات */
-        .product-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #eee; transition: 0.2s; }
-        .product-item img { width: 65px; height: 65px; border-radius: 12px; object-fit: cover; background: #f1f5f9; }
-        .cat-badge { background: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 5px; }
-        
-        #p-preview-img { width: 100%; max-height: 250px; object-fit: contain; margin-top: 10px; border-radius: 12px; display: none; border: 1px solid #ddd; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
+        .header { background: #1e293b; color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 4px solid #c5a059; }
+        .form { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
+        .btn-add { background: #c5a059; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .p-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .p-item { background: white; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #eee; }
     </style>
 </head>
 <body>
-
-<div class="admin-header">
-    <h1>👑 إدارة المقر الملكي</h1>
-    <div style="margin-top:10px;">
-        <button onclick="location.href='admin.html'" style="color:white; background:none; border:1px solid white; padding:6px 20px; border-radius:20px; cursor:pointer; font-weight:bold;">⬅️ العودة للرئيسية</button>
+    <div class="header"><h2>📦 إدارة ملصقات منوبولي</h2> <a href="admin.html" style="color:white; text-decoration:none;">🏠 العودة</a></div>
+    <div class="form">
+        <input type="text" id="n" placeholder="اسم الملصق">
+        <input type="number" id="p" placeholder="السعر">
+        <select id="c">
+            <option value="⭐ 4 نجوم">⭐ 4 نجوم</option>
+            <option value="⭐⭐ 5 نجوم">⭐⭐ 5 نجوم</option>
+            <option value="🏆 ملصق ذهبي">🏆 ملصق ذهبي</option>
+        </select>
+        <input type="text" id="i" placeholder="رابط الصورة" style="grid-column: span 2;">
+        <button class="btn-add" onclick="add()">نشر المنتج ✨</button>
     </div>
-</div>
-
-<div class="container">
-    <aside>
-        <div class="card">
-            <h3>📂 الأقسام (Categories)</h3>
-            <input type="text" id="new-cat-name" placeholder="اسم القسم الجديد">
-            <button class="btn-blue" onclick="addCategory()">+ إضافة قسم</button>
-            <div id="cats-list" style="margin-top: 20px;"></div>
-        </div>
-    </aside>
-
-    <main>
-        <div class="card">
-            <h3 id="form-title">➕ إضافة منتج جديد</h3>
-            <input type="hidden" id="edit-id">
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <input type="text" id="p-name" placeholder="اسم المنتج">
-                <input type="number" id="p-price" placeholder="السعر ($)">
-            </div>
-
-            <select id="p-category"><option value="">-- اختر القسم --</option></select>
-
-            <div style="border: 2px dashed var(--gold); padding: 20px; text-align: center; border-radius: 15px; cursor: pointer; background: #fffcf5;" onclick="document.getElementById('file-input').click()">
-                <span id="u-status">🖼️ ارفع صورة المنتج</span>
-                <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImg(this)">
-            </div>
-            <input type="hidden" id="p-img">
-            <img id="p-preview-img" src="">
-
-            <div style="margin-top: 25px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b>🛠️ بيانات مطلوبة من الزبون:</b>
-                    <button onclick="addNewFieldRow()" style="background:var(--royal); color:white; border:none; padding:6px 15px; border-radius:8px; cursor:pointer;">+ أضف حقل</button>
+    <div id="list" class="p-list"></div>
+    <script>
+        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        async function load() {
+            const { data } = await _supabase.from('products').select('*').order('created_at', {ascending: false});
+            document.getElementById('list').innerHTML = data.map(p => `
+                <div class="p-item">
+                    <img src="${p.image_url}" width="100">
+                    <div>${p.name}</div>
+                    <button onclick="del(${p.id})" style="color:red; border:none; background:none; cursor:pointer;">حذف 🗑️</button>
                 </div>
-                <div id="dynamic-fields-container" style="margin-top:15px;"></div>
-            </div>
-
-            <button class="btn-gold" id="save-btn" onclick="saveProduct()">حفظ المنتج في المقر ✅</button>
-            <button id="cancel-btn" onclick="location.reload()" style="display:none; width:100%; background:none; border:none; color:#ef4444; margin-top:12px; cursor:pointer; font-weight:bold;">❌ إلغاء التعديل</button>
-        </div>
-
-        <div id="products-render-area">
-            <h3>📦 قائمة كشوفات المنتجات الحالية</h3>
-            <div id="items-render">جاري التحقق من الاتصال بالمقر... ⏳</div>
-        </div>
-    </main>
-</div>
-
-<script>
-    const _supabase = supabase.create
-    
+            `).join('');
+        }
+        async function add() {
+            await _supabase.from('products').insert([{ name: document.getElementById('n').value, price: document.getElementById('p').value, category: document.getElementById('c').value, image_url: document.getElementById('i').value }]);
+            location.reload();
+        }
+        async function del(id) { if(confirm('حذف؟')) { await _supabase.from('products').delete().eq('id', id); load(); } }
+        load();
+    </script>
+</body>
+</html>
