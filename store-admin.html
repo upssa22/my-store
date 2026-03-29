@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المتجر | إدارة المبيعات 📈</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        
+        /* الهيدر */
+        .header { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .store-badge { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); }
+
+        /* حاوية المحتوى */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .welcome-section { margin-bottom: 30px; }
+        .welcome-section h2 { margin: 0; color: var(--primary); }
+        .welcome-section p { color: #64748b; margin: 5px 0 0; }
+
+        /* شبكة الأزرار السريعة */
+        .grid-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .menu-card { background: white; padding: 30px; border-radius: 20px; text-align: center; text-decoration: none; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--accent); }
+        .icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+        .menu-card h3 { margin: 0; color: var(--primary); font-size: 1.2rem; }
+        .menu-card p { color: #94a3b8; font-size: 0.9rem; margin-top: 10px; }
+
+        /* حالة البوت */
+        .bot-status { margin-top: 30px; background: white; padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; border-right: 5px solid var(--success); }
+        .status-dot { width: 12px; height: 12px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        .logout-btn { background: #fee2e2; color: #ef4444; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <h1 id="display-store-name" style="font-size: 1.2rem; margin:0;">جاري التحميل...</h1>
+        <span class="store-badge" id="display-store-id">ID: ...</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">تسجيل خروج ⬅️</button>
+</header>
+
+<div class="container">
+    <div class="welcome-section">
+        <h2 id="greeting">أهلاً بك يا مدير المتجر 👋</h2>
+        <p>إليك نظرة سريعة على أدوات إدارة متجرك اليوم.</p>
+    </div>
+
+    <div class="bot-status">
+        <div class="status-dot"></div>
+        <div>
+            <strong style="display:block; font-size: 0.9rem;">بوت التليجرام نشط الآن</strong>
+            <small style="color: #64748b;">نظامك يستقبل الطلبات والرسائل بشكل طبيعي.</small>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;" class="grid-menu">
+        <a href="products-manager.html" class="menu-card">
+            <span class="icon">📦</span>
+            <h3>إدارة المنتجات</h3>
+            <p>إضافة، تعديل، أو حذف المنتجات من متجرك.</p>
+        </a>
+
+        <a href="sales-report.html" class="menu-card">
+            <span class="icon">💰</span>
+            <h3>المبيعات والطلبات</h3>
+            <p>مشاهدة طلبات العملاء وتفاصيل الفواتير.</p>
+        </a>
+
+        <a href="customer-messages.html" class="menu-card">
+            <span class="icon">💬</span>
+            <h3>رسائل التليجرام</h3>
+            <p>الرد على استفسارات العملاء الواردة للبوت.</p>
+        </a>
+
+        <a href="settings.html" class="menu-card">
+            <span class="icon">⚙️</span>
+            <h3>إعدادات المتجر</h3>
+            <p>تغيير اسم المتجر، التوكن، أو ألوان الهوية.</p>
+        </a>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    // التحقق من الجلسة عند فتح الصفحة
+    async function checkSession() {
+        const storeId = sessionStorage.getItem('storeId');
+        const userName = sessionStorage.getItem('userName');
+        
+        if (!storeId) {
+            window.location.href = 'admin.html';
+            return;
+        }
+
+        document.getElementById('greeting').innerText = `أهلاً بك يا ${userName || 'مدير المتجر'} 👋`;
+        document.getElementById('display-store-id').innerText = `ID: ${storeId}`;
+
+        // جلب بيانات المتجر من القاعدة لتحديث الاسم
+        const { data: store } = await _supabase
+            .from('stores')
+            .select('store_name')
+            .eq('id', storeId)
+            .single();
+
+        if (store) {
+            document.getElementById('display-store-name').innerText = store.store_name;
+            document.title = `إدارة ${store.store_name}`;
+        }
+    }
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'admin.html';
+    }
+
+    checkSession();
+</script>
+
+</body>
+</html>
