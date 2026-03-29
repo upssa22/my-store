@@ -2,46 +2,34 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>دخول الإدارة | المقر الملكي 👑</title>
+    <title>لوحة التحكم | المقر الملكي 👑</title>
     <style>
-        :root { --blue: #1e293b; --gold: #c5a059; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        button { background: var(--blue); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        .menu-grid { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .menu-btn { text-decoration: none; padding: 20px 10px; border-radius: 12px; color: white; font-size: 0.9rem; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; direction: rtl; }
+        .admin-container { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 400px; border-top: 8px solid #c5a059; }
+        .admin-menu { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        .menu-item { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 18px; text-decoration: none; color: white; border-radius: 15px; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
+        .menu-item:hover { transform: translateY(-3px); opacity: 0.9; }
+        /* ألوان الأزرار الأصلية */
+        .products { background: #4f46e5; }
+        .monitor  { background: #0ea5e9; }
+        .sales    { background: #10b981; }
+        .settings { background: #f59e0b; }
+        .staff    { background: #1e293b; }
+        .logout   { background: #ef4444; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="login-card" id="login-box">
-        <div style="font-size: 3rem;">🔐</div>
-        <h2>دخول المقر الملكي</h2>
-        <input type="password" id="pass" placeholder="A1dmin">
-        <button onclick="checkPass()">دخول 🔑</button>
-    </div>
-
-    <div class="login-card" id="main-menu" style="display:none; width: 500px;">
-        <h2>🏰 لوحة التحكم المركزية</h2>
-        <div class="menu-grid" style="display: grid;">
-            <a href="admin-products.html" class="menu-btn" style="background:#4f46e5;">📦 المنتجات</a>
-            <a href="admin-messages.html" class="menu-btn" style="background:#0ea5e9;">📬 المراقبة</a>
-            <a href="admin-sales.html" class="menu-btn" style="background:#10b981;">💰 المبيعات</a>
-            <a href="admin-users.html" class="menu-btn" style="background:#6366f1;">👥 المستخدمين</a>
-            <a href="admin-staff.html" class="menu-btn" style="background:#1e293b;">👮 المشرفين</a>
-            <a href="admin-settings.html" class="menu-btn" style="background:#f59e0b;">⚙️ الإعدادات</a>
-            <a href="admin-whitelist.html" class="menu-btn" style="background:#c5a059;">🛡️ القائمة البيضاء</a>
+    <div class="admin-container">
+        <div style="font-size: 3.5rem;">🏰</div>
+        <h1>المقر الملكي</h1>
+        <div class="admin-menu">
+            <a href="admin-products.html" class="menu-item products">📦 إدارة الملصقات</a>
+            <a href="admin-messages.html" class="menu-item monitor">🛡️ شاشة المراقبة</a>
+            <a href="admin-sales.html" class="menu-item sales">💰 سجل المبيعات</a>
+            <a href="admin-staff.html" class="menu-item staff">👮 المشرفين</a>
+            <a href="admin-settings.html" class="menu-item settings">⚙️ الإعدادات</a>
+            <a href="index.html" class="menu-item logout">🚪 خروج للمتجر</a>
         </div>
     </div>
-
-    <script>
-        function checkPass() {
-            const p = document.getElementById('pass').value;
-            if(p === "1234") { // غير كلمة المرور هنا
-                document.getElementById('login-box').style.display = 'none';
-                document.getElementById('main-menu').style.display = 'block';
-            } else { alert("كلمة المرور خاطئة يا ملك!"); }
-        }
-    </script>
 </body>
 </html>
