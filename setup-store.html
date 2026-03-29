@@ -7,24 +7,35 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --bg: #f8fafc; }
+        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --error: #ef4444; --bg: #f8fafc; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        
+        /* تصميم الحاوية الرئيسية */
         .setup-container { max-width: 550px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 6px solid var(--accent); }
+        
         .header { text-align: center; margin-bottom: 30px; }
         .header h1 { color: var(--primary); font-size: 1.8rem; margin: 0 0 10px 0; }
         .header p { color: #64748b; font-size: 0.95rem; line-height: 1.5; }
-        .form-group { margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 20px; text-align: right; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; font-size: 0.9rem; }
-        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
-        input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; outline: none; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
         .help-text { font-size: 0.75rem; color: #64748b; margin-top: 5px; display: block; }
         .help-text a { color: var(--accent); text-decoration: none; font-weight: bold; }
+
         .btn-launch { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-launch:hover { background: #0f172a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .btn-launch:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
-        .success-box { display: none; text-align: center; padding: 30px; background: #f0fdf4; border-radius: 20px; border: 1px solid #bbf7d0; }
-        .loader { display: none; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* رسالة النجاح */
+        .success-box { display: none; text-align: center; padding: 30px; background: #f0fdf4; border-radius: 20px; border: 1px solid #bbf7d0; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* منبهات التحميل */
+        .loading-overlay { display: none; margin-top: 15px; font-size: 0.9rem; color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,23 +43,23 @@
 <div class="setup-container">
     <div id="setup-form">
         <div class="header">
-            <h1>أطلق متجرك الخاص 🚀</h1>
-            <p>أدخل البيانات الأساسية لربط بوت التليجرام وبناء لوحة التحكم الخاصة بك فوراً.</p>
+            <h1>تأسيس متجرك الجديد 🚀</h1>
+            <p>أدخل البيانات الأساسية لربط البوت وتجهيز لوحة التحكم الخاصة بك في ثوانٍ.</p>
         </div>
 
         <div class="form-group">
-            <label>📧 البريد الإلكتروني للإدارة:</label>
+            <label>📧 البريد الإلكتروني (للدخول للإدارة):</label>
             <input type="email" id="owner-email" placeholder="admin@example.com" required>
         </div>
 
         <div class="form-group">
             <label>🔑 كلمة المرور:</label>
-            <input type="password" id="owner-pass" placeholder="كلمة مرور قوية لإدارة المتجر" required>
+            <input type="password" id="owner-pass" placeholder="كلمة مرور قوية" required>
         </div>
 
         <div class="form-group">
-            <label>🏰 اسم المتجر:</label>
-            <input type="text" id="store-name" placeholder="مثلاً: متجر النخبة" required>
+            <label>🏬 اسم المتجر:</label>
+            <input type="text" id="store-name" placeholder="مثلاً: متجر المبدع" required>
         </div>
 
         <div class="form-group">
@@ -63,73 +74,86 @@
         </div>
 
         <button class="btn-launch" id="submit-btn" onclick="launchSaaS()">تفعيل المتجر والربط ✨</button>
+        <div id="loader-text" class="loading-overlay">جاري معالجة الطلب، يرجى الانتظار...</div>
     </div>
 
     <div id="success-area" class="success-box">
         <div style="font-size: 4rem; margin-bottom: 15px;">🎉</div>
-        <h2 style="color: #166534; margin: 0 0 10px 0;">متجرك جاهز للعمل!</h2>
-        <p style="color: #1e40af; font-weight: bold; font-size: 0.8rem; background: #dbeafe; padding: 10px; border-radius: 10px;" id="store-id-display"></p>
-        <p style="color: #4b5563; line-height: 1.6;">تم ربط بوت التليجرام وتجهيز قاعدة البيانات بنجاح. يمكنك الآن الدخول وإضافة أول منتج.</p>
-        <a href="admin.html" id="admin-link" style="display: block; margin-top: 25px; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold;">دخول لوحة التحكم ⬅️</a>
+        <h2 style="color: #166534; margin: 0 0 10px 0;">تم إطلاق المتجر!</h2>
+        <div style="background: #dbeafe; padding: 15px; border-radius: 12px; margin: 15px 0;">
+            <p style="color: #1e40af; font-weight: bold; margin: 0; font-size: 0.85rem;" id="store-id-display"></p>
+        </div>
+        <p style="color: #4b5563; font-size: 0.9rem; line-height: 1.6;">تم ربط بوت التليجرام وتخصيص قاعدة البيانات. يمكنك الآن البدء بإضافة المنتجات.</p>
+        <a href="admin.html" id="admin-link" style="display: block; margin-top: 25px; background: var(--primary); color: white; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s;">الانتقال إلى لوحة التحكم ⬅️</a>
     </div>
 </div>
 
 <script>
+    // تهيئة سوبابيز
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-    // دالة للتحقق من صحة التوكن عبر API تليجرام
-    async function isTokenValid(token) {
+    // دالة التحقق من التوكن عبر تليجرام
+    async function validateBotToken(token) {
         try {
-            const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
-            const data = await response.json();
+            const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+            const data = await res.json();
             return data.ok;
         } catch (e) { return false; }
     }
 
     async function launchSaaS() {
-        const email = document.getElementById('owner-email').value;
-        const pass = document.getElementById('owner-pass').value;
-        const name = document.getElementById('store-name').value;
-        const token = document.getElementById('bot-token').value;
+        // جلب القيم من المدخلات
+        const email = document.getElementById('owner-email').value.trim();
+        const pass = document.getElementById('owner-pass').value.trim();
+        const name = document.getElementById('store-name').value.trim();
+        const token = document.getElementById('bot-token').value.trim();
         const color = document.getElementById('theme-color').value;
         const btn = document.getElementById('submit-btn');
+        const loader = document.getElementById('loader-text');
 
+        // التحقق من تعبئة كافة الحقول
         if(!email || !pass || !name || !token) {
-            return alert("جميع الحقول إجبارية، يرجى تعبئة توكن البوت لتفعيل النظام.");
+            return alert("يرجى إكمال كافة الحقول المطلوبة لتأسيس المتجر.");
         }
 
+        // بدء عملية التحميل
         btn.disabled = true;
-        btn.innerHTML = 'جاري التحقق من التوكن... ⏳';
+        loader.style.display = 'block';
+        loader.innerText = "جاري التحقق من توكن البوت... 🤖";
 
-        // 1. التحقق من التوكن أولاً
-        const isValid = await isTokenValid(token);
-        if(!isValid) {
+        // 1. التحقق من صحة التوكن
+        const isValidToken = await validateBotToken(token);
+        if(!isValidToken) {
             btn.disabled = false;
-            btn.innerHTML = 'تفعيل المتجر والربط ✨';
-            return alert("عذراً، توكن بوت التليجرام غير صحيح! تأكد من نسخه بشكل كامل من BotFather.");
+            loader.style.display = 'none';
+            return alert("عذراً! توكن بوت التليجرام غير صحيح أو غير مفعل.");
         }
 
-        btn.innerHTML = 'جاري بناء المتجر... 🏗️';
+        loader.innerText = "جاري التأكد من توفر الحساب... 📧";
 
-        // 2. إنشاء المتجر في جدول stores
+        // 2. التحقق من عدم تكرار البريد الإلكتروني في جدول stores
+        const { data: existingStore } = await _supabase.from('stores').select('id').eq('owner_email', email).single();
+        if(existingStore) {
+            btn.disabled = false;
+            loader.style.display = 'none';
+            return alert("هذا البريد الإلكتروني مسجل مسبقاً لمتجر آخر.");
+        }
+
+        loader.innerText = "جاري بناء المتجر وتخصيص البيانات... 🏗️";
+
+        // 3. إدراج المتجر في جدول stores
         const { data: storeData, error: storeError } = await _supabase
             .from('stores')
-            .insert([{ 
-                owner_email: email, 
-                store_name: name, 
-                bot_token: token, 
-                theme_color: color 
-            }])
-            .select()
-            .single();
+            .insert([{ owner_email: email, store_name: name, bot_token: token, theme_color: color }])
+            .select().single();
 
         if (storeError) {
             btn.disabled = false;
-            btn.innerHTML = 'تفعيل المتجر والربط ✨';
-            return alert("خطأ في إنشاء المتجر: " + storeError.message);
+            loader.style.display = 'none';
+            return alert("حدث خطأ في قاعدة البيانات: " + storeError.message);
         }
 
-        // 3. إنشاء حساب المدير في جدول staff وربطه بالمتجر الجديد
+        // 4. إنشاء حساب المدير في جدول staff وربطه بالمتجر الجديد
         const { error: staffError } = await _supabase
             .from('staff')
             .insert([{ 
@@ -140,12 +164,20 @@
                 store_id: storeData.id 
             }]);
 
-        if (staffError) return alert("حدث خطأ أثناء إعداد صلاحيات الإدارة.");
+        if (staffError) {
+            // في حالة فشل إنشاء المشرف، يفضل حذف المتجر الذي تم إنشاؤه (Rollback يدوي بسيط)
+            await _supabase.from('stores').delete().eq('id', storeData.id);
+            btn.disabled = false;
+            loader.style.display = 'none';
+            return alert("فشل في إعداد حساب المدير. حاول مرة أخرى.");
+        }
 
-        // 4. عرض النجاح
+        // 5. إظهار واجهة النجاح
         document.getElementById('setup-form').style.display = 'none';
         document.getElementById('success-area').style.display = 'block';
-        document.getElementById('store-id-display').innerText = `ID المتجر: ${storeData.id}`;
+        document.getElementById('store-id-display').innerText = `ID المتجر الخاص بك: ${storeData.id}`;
+        
+        // ربط زر الانتقال بالمتجر الجديد عبر الرابط
         document.getElementById('admin-link').href = `admin.html?store_id=${storeData.id}`;
     }
 </script>
