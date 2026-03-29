@@ -11,7 +11,6 @@
             --royal-blue: #1e293b; 
             --royal-gold: #c5a059; 
             --bg-gray: #f8fafc; 
-            --card-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
         body { 
@@ -25,6 +24,7 @@
 
         .container { max-width: 900px; margin: auto; }
 
+        /* الهيدر الملكي */
         .header { 
             background: var(--royal-blue); 
             color: white; 
@@ -35,7 +35,7 @@
             align-items: center; 
             margin-bottom: 30px; 
             border-bottom: 4px solid var(--royal-gold); 
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
         .header h2 { margin: 0; font-size: 1.4rem; }
@@ -51,15 +51,16 @@
             transition: 0.3s;
         }
 
-        .btn-refresh:hover { background: #b08d4a; transform: scale(1.05); }
+        .btn-refresh:hover { background: #b08d4a; transform: translateY(-2px); }
 
+        /* بطاقة الرسالة */
         .msg-card { 
             background: white; 
             padding: 20px; 
             border-radius: 18px; 
             margin-bottom: 15px; 
             border-right: 6px solid var(--royal-gold); 
-            box-shadow: var(--card-shadow); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
             animation: fadeIn 0.4s ease-out;
         }
 
@@ -74,7 +75,6 @@
         }
 
         .user-name { font-weight: 800; color: var(--royal-blue); font-size: 1.1rem; }
-        
         .time { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
 
         .badge { 
@@ -88,16 +88,17 @@
             border: 1px solid #e2e8f0; 
         }
 
+        /* زر فتح الوسائط */
         .media-btn { 
             margin-top: 15px; 
-            padding: 12px 20px; 
+            padding: 12px 22px; 
             background: #fffbeb; 
             border: 1px solid var(--royal-gold); 
             border-radius: 12px; 
             color: #b45309; 
             cursor: pointer; 
             font-weight: bold; 
-            display: flex; 
+            display: inline-flex; 
             align-items: center; 
             gap: 10px; 
             transition: 0.2s;
@@ -105,53 +106,4 @@
 
         .media-btn:hover { background: var(--royal-gold); color: white; }
 
-        .empty-state { text-align: center; padding: 60px; color: #94a3b8; font-size: 1.1rem; }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <div class="header">
-            <h2>📬 سجل زوار المقر الملكي</h2>
-            <button class="btn-refresh" onclick="fetchMessages()">تحديث السجل 🔄</button>
-        </div>
-        
-        <div id="messages-list">
-            <div class="empty-state">جاري استدعاء البيانات الملكية...</div>
-        </div>
-    </div>
-
-    <script>
-        // الاتصال بقاعدة البيانات
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-
-        async function fetchMessages() {
-            const { data, error } = await _supabase
-                .from('incoming_messages')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            const list = document.getElementById('messages-list');
-            
-            if (error) { 
-                list.innerHTML = `<div class="empty-state">❌ خطأ في الاتصال: ${error.message}</div>`; 
-                return; 
-            }
-            
-            if (!data || data.length === 0) { 
-                list.innerHTML = `<div class="empty-state">📭 لا توجد رسائل مسجلة حالياً.</div>`; 
-                return; 
-            }
-
-            list.innerHTML = data.map(m => `
-                <div class="msg-card">
-                    <div class="user-info">
-                        <div>
-                            <span class="user-name">👤 ${m.full_name}</span> 
-                            <span style="color:var(--royal-gold); font-size:0.9rem">@${m.username || 'n/a'}</span>
-                        </div>
-                        <span class="time">${new Date(m.created_at).toLocaleString('ar-EG')}</span>
-                    </div>
-                    <div class="content">
-                        <span class="badge">${getArabicType(m.media_type)}</span> 
-                        <div style="margin-top:10
+        .empty-state { text-align: center; padding: 60px; color: #94a3b8; font-size: 1.1
