@@ -1,35 +1,134 @@
-// استبدل جزء التحقق في صفحة admin.html بهذا المنطق:
-async function handleLogin() {
-    // ... جلب المدخلات ...
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول | منصة SaaS الذكية 🔐</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; direction: rtl; }
+        
+        .login-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); width: 100%; max-width: 420px; text-align: center; border: 1px solid #f1f5f9; }
+        .logo-area { font-size: 3.5rem; margin-bottom: 15px; }
+        h2 { color: var(--primary); margin-bottom: 10px; font-size: 1.6rem; }
+        p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 30px; }
 
-    // أولاً: التحقق في جدول saas_users (موظفو النظام)
-    const { data: saasUser } = await _supabase
-        .from('saas_users')
-        .select('*')
-        .eq('username', email) // هنا نستخدم اليوزر بدلاً من الإيميل أو كلاهما
-        .eq('password', pass)
-        .single();
+        .form-group { margin-bottom: 20px; text-align: right; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: #475569; }
+        input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.3s; background: #fcfdfe; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); background: white; }
 
-    if (saasUser) {
-        // تحديث آخر ظهور
-        await _supabase.from('saas_users').update({ last_login: new Date() }).eq('id', saasUser.id);
-        sessionStorage.setItem('saasUser', JSON.stringify(saasUser));
-        window.location.href = 'saas-admin.html';
-        return;
+        .btn-login { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-login:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(15, 23, 42, 0.2); }
+        .btn-login:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+        .footer-links { margin-top: 25px; font-size: 0.85rem; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+        .footer-links a { color: var(--accent); text-decoration: none; font-weight: bold; }
+        
+        .alert { display: none; padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; text-align: center; }
+        .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="logo-area">🛡️</div>
+    <h2>دخول النظام</h2>
+    <p>أدخل بيانات الاعتماد للوصول إلى لوحة التحكم</p>
+
+    <div id="login-alert" class="alert alert-error">بيانات الدخول غير صحيحة ❌</div>
+
+    <div class="form-group">
+        <label>اسم المستخدم أو البريد الإلكتروني:</label>
+        <input type="text" id="user-id" placeholder="example@mail.com" required>
+    </div>
+
+    <div class="form-group">
+        <label>كلمة المرور:</label>
+        <input type="password" id="user-pass" placeholder="••••••••" required>
+    </div>
+
+    <button class="btn-login" id="login-btn" onclick="handleLogin()">تسجيل الدخول آمن 🚀</button>
+
+    <div class="footer-links">
+        تريد إطلاق متجرك؟ <a href="setup-store.html">أنشئ حساب تاجر الآن</a>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function handleLogin() {
+        const userInput = document.getElementById('user-id').value.trim();
+        const password = document.getElementById('user-pass').value.trim();
+        const btn = document.getElementById('login-btn');
+        const alertBox = document.getElementById('login-alert');
+
+        if (!userInput || !password) {
+            showAlert("يرجى إدخال كافة البيانات!");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = 'جاري التحقق... ⏳';
+        alertBox.style.display = 'none';
+
+        try {
+            // 1. محاولة الدخول كموظف نظام (SaaS User / Admin)
+            const { data: saasUser, error: saasErr } = await _supabase
+                .from('saas_users')
+                .select('*')
+                .eq('username', userInput)
+                .eq('password', password)
+                .single();
+
+            if (saasUser) {
+                // تحديث وقت آخر دخول للموظف للتقرير
+                await _supabase.from('saas_users').update({ last_login: new Date() }).eq('id', saasUser.id);
+                
+                sessionStorage.setItem('saasUser', JSON.stringify(saasUser));
+                window.location.href = 'saas-admin.html';
+                return;
+            }
+
+            // 2. إذا لم ينجح، محاولة الدخول كصاحب متجر (Store Owner)
+            const { data: storeStaff, error: staffErr } = await _supabase
+                .from('staff')
+                .select('*')
+                .eq('email', userInput)
+                .eq('password', password)
+                .single();
+
+            if (storeStaff) {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('storeId', storeStaff.store_id);
+                sessionStorage.setItem('userName', storeStaff.full_name);
+                sessionStorage.setItem('userRole', storeStaff.role);
+                
+                window.location.href = `store-admin.html?store_id=${storeStaff.store_id}`;
+                return;
+            }
+
+            // إذا وصلنا هنا، يعني البيانات خاطئة في الجدولين
+            showAlert("بيانات الدخول غير صحيحة، تأكد من الإيميل وكلمة المرور.");
+
+        } catch (err) {
+            console.error(err);
+            showAlert("حدث خطأ تقني في الاتصال بالسيرفر.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'تسجيل الدخول آمن 🚀';
+        }
     }
 
-    // ثانياً: إذا لم يكن موظف نظام، ابحث في جدول staff (التجار)
-    const { data: storeUser } = await _supabase
-        .from('staff')
-        .select('*')
-        .eq('email', email)
-        .eq('password', pass)
-        .single();
-
-    if (storeUser) {
-        sessionStorage.setItem('storeId', storeUser.store_id);
-        window.location.href = `store-admin.html?store_id=${storeUser.store_id}`;
-    } else {
-        alert("بيانات الدخول خاطئة ❌");
+    function showAlert(msg) {
+        const alertBox = document.getElementById('login-alert');
+        alertBox.innerText = msg;
+        alertBox.style.display = 'block';
     }
-}
+</script>
+
+</body>
+</html>
