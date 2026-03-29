@@ -1,69 +1,35 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>المقر الملكي | تسجيل الدخول 🔐</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="js/app-config.js"></script>
-    <style>
-        :root { --royal: #1e293b; --gold: #c5a059; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; direction: rtl; }
-        .login-card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 380px; border-top: 8px solid var(--gold); }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
-        .btn-login { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; }
-        #admin-panel { display: none; width: 500px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 8px solid var(--gold); }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
-        .menu-item { text-decoration: none; padding: 25px 10px; border-radius: 15px; font-weight: bold; color: white; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.3s; }
-        .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
-        .products { background: #4f46e5; } .monitor { background: #0ea5e9; } .sales { background: #10b981; } .users { background: #6366f1; } .staff { background: #1e293b; } .settings { background: #f59e0b; } .logout { background: #ef4444; grid-column: span 2; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <div id="login-section" class="login-card">
-        <div style="font-size: 4rem;">🏰</div>
-        <h2>دخول المقر الملكي</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="password" placeholder="كلمة المرور">
-        <button class="btn-login" id="login-btn" onclick="login()">دخول 🔐</button>
-    </div>
+// استبدل جزء التحقق في صفحة admin.html بهذا المنطق:
+async function handleLogin() {
+    // ... جلب المدخلات ...
 
-    <div id="admin-panel">
-        <h2 id="welcome-msg">مرحباً بك يا ملك 👑</h2>
-        <div class="menu-grid">
-            <a href="admin-products.html" class="menu-item products"><span>📦</span> إدارة المنتجات</a>
-            <a href="admin-messages.html" class="menu-item monitor"><span>🛡️</span> شاشة المراقبة</a>
-            <a href="admin-sales.html" class="menu-item sales"><span>💰</span> المبيعات</a>
-            <a href="admin-users.html" class="menu-item users"><span>👥</span> المستخدمين</a>
-            <a href="admin-staff.html" class="menu-item staff"><span>👮</span> المشرفين</a>
-            <a href="admin-settings.html" class="menu-item settings"><span>⚙️</span> الإعدادات</a>
-            <a href="#" onclick="logout()" class="menu-item logout">🚪 تسجيل الخروج</a>
-        </div>
-    </div>
+    // أولاً: التحقق في جدول saas_users (موظفو النظام)
+    const { data: saasUser } = await _supabase
+        .from('saas_users')
+        .select('*')
+        .eq('username', email) // هنا نستخدم اليوزر بدلاً من الإيميل أو كلاهما
+        .eq('password', pass)
+        .single();
 
-    <script>
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-        async function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-            btn.innerText = "جاري التحقق... ⏳";
-            const { data, error } = await _supabase.from('staff').select('*').eq('email', email).eq('password', pass).single();
-            if (data) {
-                sessionStorage.setItem('isKing', 'true');
-                sessionStorage.setItem('kingName', data.full_name);
-                showPanel();
-            } else {
-                alert("بيانات الدخول خاطئة ❌");
-                btn.innerText = "دخول 🔐";
-            }
-        }
-        function showPanel() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('welcome-msg').innerText = `مرحباً بك يا ${sessionStorage.getItem('kingName')} 👑`;
-        }
-        function logout() { sessionStorage.clear(); location.reload(); }
-        if (sessionStorage.getItem('isKing') === 'true') showPanel();
-    </script>
-</body>
-</html>
+    if (saasUser) {
+        // تحديث آخر ظهور
+        await _supabase.from('saas_users').update({ last_login: new Date() }).eq('id', saasUser.id);
+        sessionStorage.setItem('saasUser', JSON.stringify(saasUser));
+        window.location.href = 'saas-admin.html';
+        return;
+    }
+
+    // ثانياً: إذا لم يكن موظف نظام، ابحث في جدول staff (التجار)
+    const { data: storeUser } = await _supabase
+        .from('staff')
+        .select('*')
+        .eq('email', email)
+        .eq('password', pass)
+        .single();
+
+    if (storeUser) {
+        sessionStorage.setItem('storeId', storeUser.store_id);
+        window.location.href = `store-admin.html?store_id=${storeUser.store_id}`;
+    } else {
+        alert("بيانات الدخول خاطئة ❌");
+    }
+}
