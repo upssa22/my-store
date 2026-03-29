@@ -3,35 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المقر الملكي | لوحة التحكم 👑</title>
+    <title>لوحة التحكم | المقر الملكي 👑</title>
     <style>
-        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg-gray: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-gray); margin: 0; padding: 0; direction: rtl; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .admin-box { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 90%; border-top: 8px solid var(--royal-gold); }
-        h1 { color: var(--royal-blue); margin-bottom: 30px; font-size: 1.8rem; }
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .menu-btn { 
-            text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.1rem; transition: 0.3s; 
-            display: flex; align-items: center; justify-content: center; gap: 12px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            direction: rtl;
         }
-        .btn-products { background: var(--royal-blue); color: white; }
-        .btn-products:hover { background: #334155; transform: scale(1.03); }
-        /* زر المراقبة الجديد */
-        .btn-monitor { background: #0ea5e9; color: white; }
-        .btn-monitor:hover { background: #0284c7; transform: scale(1.03); }
+        .admin-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 400px;
+        }
+        h1 { color: #1e293b; margin-bottom: 25px; }
         
-        .btn-store { background: #f1f5f9; color: var(--royal-blue); border: 1px solid #e2e8f0; }
+        .admin-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* تصميم الأزرار كما كانت في نسختك القديمة */
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 18px;
+            text-decoration: none;
+            color: white;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        
+        .menu-item:active { transform: scale(0.95); }
+        .menu-item:hover { opacity: 0.9; }
+
+        /* الألوان الأصلية لكل قسم */
+        .products { background-color: #4f46e5; } /* بنفسجي/أزرق المنتجات */
+        .monitor  { background-color: #0ea5e9; } /* أزرق سماوي للمراقبة - الجديد */
+        .admins    { background-color: #10b981; } /* أخضر المشرفين */
+        .appearance { background-color: #f59e0b; } /* برتقالي المظهر */
+        .stats     { background-color: #6366f1; } /* إحصائيات */
+        .logout    { background-color: #ef4444; margin-top: 10px; } /* أحمر خروج */
+
+        .icon { font-size: 1.4rem; }
     </style>
 </head>
 <body>
-    <div class="admin-box">
-        <div style="font-size: 3rem; margin-bottom: 10px;">🏰</div>
-        <h1>لوحة التحكم الملكية</h1>
-        <div class="menu-grid">
-            <a href="admin-products.html" class="menu-btn btn-products">📦 إدارة ملصقات منوبولي</a>
-            <a href="admin-messages.html" class="menu-btn btn-monitor">🛡️ شاشة المراقبة والوسائط</a>
-            <a href="index.html" target="_blank" class="menu-btn btn-store">🌐 زيارة المتجر</a>
+
+    <div class="admin-container">
+        <h1>👑 لوحة التحكم</h1>
+        
+        <div class="admin-menu">
+            <a href="admin-products.html" class="menu-item products">
+                <span class="icon">📦</span> إدارة المنتجات
+            </a>
+
+            <a href="admin-messages.html" class="menu-item monitor">
+                <span class="icon">🛡️</span> شاشة المراقبة والوسائط
+            </a>
+
+            <a href="#" class="menu-item admins">
+                <span class="icon">👥</span> إدارة المشرفين
+            </a>
+
+            <a href="#" class="menu-item appearance">
+                <span class="icon">🎨</span> تخصيص المظهر
+            </a>
+
+            <a href="#" class="menu-item stats">
+                <span class="icon">📊</span> إحصائيات المتجر
+            </a>
+
+            <a href="index.html" class="menu-item logout">
+                <span class="icon">🚪</span> خروج من المقر
+            </a>
         </div>
     </div>
+
 </body>
 </html>
