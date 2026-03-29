@@ -11,23 +11,23 @@
         .nav-links { display: flex; gap: 10px; }
         .nav-btn { text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; color: white; background: rgba(255,255,255,0.1); }
         .active { background: var(--royal-gold); }
-        .content { background: white; padding: 40px; border-radius: 20px; text-align: center; }
+        .content { background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 <div class="container" style="max-width:1000px; margin:auto;">
     <div class="admin-nav">
-        <h3 style="color:white; margin:0;">👮 إدارة الطاقم</h3>
+        <h3 style="color:white; margin:0;">👮 إدارة المشرفين</h3>
         <div class="nav-links">
             <a href="admin.html" class="nav-btn">🏠 الرئيسية</a>
             <a href="admin-staff.html" class="nav-btn active">👮 المشرفين</a>
-            <a href="admin-whitelist.html" class="nav-btn">🛡️ القائمة البيضاء</a>
+            <a href="admin-users.html" class="nav-btn">👥 المستخدمين</a>
         </div>
     </div>
     <div class="content">
-        <h2 style="color:var(--royal-blue)">إدارة الرتب الملكية 🎖️</h2>
-        <p>يمكنك قريباً إضافة مشرفين بصلاحيات محددة لرؤية المبيعات فقط أو المراقبة فقط.</p>
-        <div style="font-size: 4rem;">🔑</div>
+        <h2 style="color:var(--royal-blue)">صلاحيات المشرفين 🎖️</h2>
+        <p>تحكم في من يمكنه إضافة منتجات ومن يمكنه رؤية المبيعات فقط. الأمان الملكي أولاً.</p>
+        <div style="font-size: 4rem; margin-top:20px;">🔑</div>
     </div>
 </div>
 </body>
