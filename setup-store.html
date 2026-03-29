@@ -7,19 +7,24 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f8fafc; }
+        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --bg: #f8fafc; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
         .setup-container { max-width: 550px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 6px solid var(--accent); }
         .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 10px; }
-        .header p { color: #64748b; font-size: 0.95rem; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; color: #334155; font-size: 0.9rem; }
+        .header h1 { color: var(--primary); font-size: 1.8rem; margin: 0 0 10px 0; }
+        .header p { color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; font-size: 0.9rem; }
         input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
         input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .btn-launch { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn-launch:hover { background: #0f172a; transform: translateY(-2px); }
-        .success-box { display: none; text-align: center; padding: 20px; background: #f0fdf4; border-radius: 15px; border: 1px solid #bbf7d0; }
+        .help-text { font-size: 0.75rem; color: #64748b; margin-top: 5px; display: block; }
+        .help-text a { color: var(--accent); text-decoration: none; font-weight: bold; }
+        .btn-launch { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-launch:hover { background: #0f172a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn-launch:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .success-box { display: none; text-align: center; padding: 30px; background: #f0fdf4; border-radius: 20px; border: 1px solid #bbf7d0; }
+        .loader { display: none; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -28,93 +33,23 @@
     <div id="setup-form">
         <div class="header">
             <h1>أطلق متجرك الخاص 🚀</h1>
-            <p>ابدأ تجارتك عبر التليجرام والموقع في دقائق معدودة</p>
+            <p>أدخل البيانات الأساسية لربط بوت التليجرام وبناء لوحة التحكم الخاصة بك فوراً.</p>
         </div>
 
         <div class="form-group">
-            <label>البريد الإلكتروني للإدارة:</label>
-            <input type="email" id="owner-email" placeholder="email@example.com">
+            <label>📧 البريد الإلكتروني للإدارة:</label>
+            <input type="email" id="owner-email" placeholder="admin@example.com" required>
         </div>
 
         <div class="form-group">
-            <label>كلمة المرور:</label>
-            <input type="password" id="owner-pass" placeholder="كلمة مرور قوية">
+            <label>🔑 كلمة المرور:</label>
+            <input type="password" id="owner-pass" placeholder="كلمة مرور قوية لإدارة المتجر" required>
         </div>
 
         <div class="form-group">
-            <label>اسم المتجر:</label>
-            <input type="text" id="store-name" placeholder="مثلاً: متجر المبدع">
+            <label>🏰 اسم المتجر:</label>
+            <input type="text" id="store-name" placeholder="مثلاً: متجر النخبة" required>
         </div>
 
         <div class="form-group">
-            <label>توكن بوت التليجرام (اختياري):</label>
-            <input type="text" id="bot-token" placeholder="Bot Token">
-        </div>
-
-        <div class="form-group">
-            <label>لون هوية المتجر:</label>
-            <input type="color" id="theme-color" value="#1e293b" style="height: 45px; padding: 2px;">
-        </div>
-
-        <button class="btn-launch" onclick="launchSaaS()">تفعيل المتجر الآن ✨</button>
-    </div>
-
-    <div id="success-area" class="success-box">
-        <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-        <h2 style="color: #166534; margin: 0 0 10px 0;">تم إنشاء متجرك بنجاح!</h2>
-        <p style="color: #1e40af; font-weight: bold;" id="store-id-display"></p>
-        <p style="color: #4b5563;">يمكنك الآن التوجه للوحة التحكم لإضافة منتجاتك.</p>
-        <a href="admin.html" id="admin-link" style="display: block; margin-top: 20px; color: var(--accent); font-weight: bold; text-decoration: none;">الانتقال للوحة التحكم ⬅️</a>
-    </div>
-</div>
-
-<script>
-    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-
-    async function launchSaaS() {
-        const email = document.getElementById('owner-email').value;
-        const pass = document.getElementById('owner-pass').value;
-        const name = document.getElementById('store-name').value;
-        const token = document.getElementById('bot-token').value;
-        const color = document.getElementById('theme-color').value;
-
-        if(!email || !pass || !name) return alert("يرجى ملء كافة الخانات المطلوبة!");
-
-        // 1. إنشاء السجل في جدول stores
-        const { data: storeData, error: storeError } = await _supabase
-            .from('stores')
-            .insert([{ 
-                owner_email: email, 
-                store_name: name, 
-                bot_token: token, 
-                theme_color: color 
-            }])
-            .select()
-            .single();
-
-        if (storeError) return alert("فشل في إنشاء المتجر: " + storeError.message);
-
-        // 2. ربط المستخدم بجدول staff كمالك (Owner) لهذا المتجر
-        const { error: staffError } = await _supabase
-            .from('staff')
-            .insert([{ 
-                full_name: "مدير المتجر", 
-                email: email, 
-                password: pass, 
-                role: 'owner',
-                store_id: storeData.id 
-            }]);
-
-        if (staffError) return alert("فشل في إعداد حساب الإدارة!");
-
-        // 3. عرض رسالة النجاح وتجهيز رابط الإدارة
-        document.getElementById('setup-form').style.display = 'none';
-        const successBox = document.getElementById('success-area');
-        successBox.style.display = 'block';
-        document.getElementById('store-id-display').innerText = `معرف المتجر: ${storeData.id}`;
-        document.getElementById('admin-link').href = `admin.html?store_id=${storeData.id}`;
-    }
-</script>
-
-</body>
-</html>
+            <label>🤖 توكن بوت التليجرام (إلزامي):</label>
