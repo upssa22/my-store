@@ -1,35 +1,42 @@
-// ملف api/send.js - نسخة الطوارئ المستقرة
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
 export default async function handler(req, res) {
     const BOT_TOKEN = process.env.TELEGRAM_TOKEN;
     const update = req.body;
 
-    // تسجيل أي حركة في الـ Logs للتشخيص
-    console.log("استلام طلب جديد...");
+    if (req.method === 'POST' && update.message) {
+        const msg = update.message;
+        const chatId = msg.chat.id;
+        const firstName = msg.from.first_name || "زبون";
+        const username = msg.from.username || "n/a";
+        
+        let mediaType = 'text';
+        let mediaId = null;
+        let textContent = msg.text || msg.caption || "";
 
-    if (req.method === 'POST' && update && update.message) {
-        const chatId = update.message.chat.id;
-        const firstName = update.message.from.first_name || "زبون";
+        if (msg.photo) { mediaType = 'photo'; mediaId = msg.photo[msg.photo.length - 1].file_id; }
+        else if (msg.voice) { mediaType = 'voice'; mediaId = msg.voice.file_id; }
 
         try {
-            // الرد التلقائي المباشر (بدون انتظار قاعدة البيانات حالياً)
-            const text = `👑 **المقر الملكي للشحن** 👑\n\nأهلاً بك يا ${firstName}.. المقر حالياً في وضع الصيانة. سنعود غداً إن شاء الله! ✨`;
-            
+            // حفظ في قاعدة البيانات
+            await supabase.from('incoming_messages').insert([{ 
+                chat_id: chatId, full_name: firstName, username: username, 
+                message_text: textContent, media_type: mediaType, media_file_id: mediaId 
+            }]);
+
+            // الرد التلقائي
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    text: text,
+                    text: `👑 أهلاً بك يا ${firstName}.. تم استلام رسالتك وتخزينها في سجلات المقر الملكي. نحن في صيانة حالياً. ✨`,
                     parse_mode: 'Markdown'
                 })
             });
-
-            console.log(`✅ تم الرد بنجاح على: ${firstName}`);
-        } catch (err) {
-            console.error("❌ فشل الإرسال:", err.message);
-        }
+        } catch (err) { console.error(err); }
     }
-
-    // إرسال رد ناجح لتيليجرام دائماً لمنع التكرار
     return res.status(200).send('OK');
 }
