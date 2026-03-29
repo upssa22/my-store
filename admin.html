@@ -2,97 +2,68 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول الإدارة | المقر الملكي 👑</title>
+    <title>المقر الملكي | تسجيل الدخول 🔐</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
     <style>
-        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg: #f1f5f9; }
+        :root { --royal: #1e293b; --gold: #c5a059; --bg: #f1f5f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; direction: rtl; }
-        
-        /* تصميم كرت الدخول */
-        .login-card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 380px; border-top: 8px solid var(--royal-gold); }
-        .login-card h2 { color: var(--royal-blue); margin-bottom: 25px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; outline: none; font-size: 1rem; }
-        input:focus { border-color: var(--royal-gold); }
-        .btn-login { background: var(--royal-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; transition: 0.3s; }
-        .btn-login:hover { background: #334155; }
-
-        /* تصميم لوحة التحكم (مخفية في البداية) */
-        #admin-panel { display: none; width: 450px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 8px solid var(--royal-gold); }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
-        .menu-item { text-decoration: none; padding: 20px 10px; border-radius: 15px; font-weight: bold; color: white; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.3s; font-size: 0.9rem; }
-        .menu-item:hover { transform: translateY(-3px); opacity: 0.9; }
-        
-        /* ألوان الأزرار المعتمدة */
-        .products { background: #4f46e5; }
-        .monitor  { background: #0ea5e9; }
-        .sales    { background: #10b981; }
-        .settings { background: #f59e0b; }
-        .staff    { background: #1e293b; }
-        .users    { background: #6366f1; }
-        .logout   { background: #ef4444; grid-column: span 2; margin-top: 10px; }
+        .login-card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 380px; border-top: 8px solid var(--gold); }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
+        .btn-login { background: var(--royal); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 10px; }
+        #admin-panel { display: none; width: 500px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 8px solid var(--gold); }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .menu-item { text-decoration: none; padding: 25px 10px; border-radius: 15px; font-weight: bold; color: white; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.3s; }
+        .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
+        .products { background: #4f46e5; } .monitor { background: #0ea5e9; } .sales { background: #10b981; } .users { background: #6366f1; } .staff { background: #1e293b; } .settings { background: #f59e0b; } .logout { background: #ef4444; grid-column: span 2; margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <div id="login-section" class="login-card">
-        <div style="font-size: 3.5rem; margin-bottom: 10px;">🏰</div>
+        <div style="font-size: 4rem;">🏰</div>
         <h2>دخول المقر الملكي</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني للملك">
-        <input type="password" id="password" placeholder="كلمة المرور السرية">
-        <button class="btn-login" onclick="login()">دخول المقر 🔐</button>
+        <input type="email" id="email" placeholder="البريد الإلكتروني">
+        <input type="password" id="password" placeholder="كلمة المرور">
+        <button class="btn-login" id="login-btn" onclick="login()">دخول 🔐</button>
     </div>
 
     <div id="admin-panel">
-        <div style="font-size: 2.5rem;">👑</div>
-        <h2 style="color: var(--royal-blue); margin-bottom: 5px;">لوحة التحكم المركزية</h2>
-        <p style="color: #64748b; font-size: 0.9rem;">مرحباً بك مجدداً في إمبراطوريتك</p>
-        
+        <h2 id="welcome-msg">مرحباً بك يا ملك 👑</h2>
         <div class="menu-grid">
             <a href="admin-products.html" class="menu-item products"><span>📦</span> إدارة المنتجات</a>
             <a href="admin-messages.html" class="menu-item monitor"><span>🛡️</span> شاشة المراقبة</a>
-            <a href="admin-sales.html" class="menu-item sales"><span>💰</span> سجل المبيعات</a>
+            <a href="admin-sales.html" class="menu-item sales"><span>💰</span> المبيعات</a>
             <a href="admin-users.html" class="menu-item users"><span>👥</span> المستخدمين</a>
             <a href="admin-staff.html" class="menu-item staff"><span>👮</span> المشرفين</a>
             <a href="admin-settings.html" class="menu-item settings"><span>⚙️</span> الإعدادات</a>
-            <a href="#" onclick="logout()" class="menu-item logout"><span>🚪</span> تسجيل الخروج</a>
+            <a href="#" onclick="logout()" class="menu-item logout">🚪 تسجيل الخروج</a>
         </div>
     </div>
 
     <script>
-        // بيانات الدخول (يمكنك تغييرها من هنا)
-        const ADMIN_EMAIL = "admin@king.com";
-        const ADMIN_PASS = "123456";
-
-        // وظيفة تسجيل الدخول
-        function login() {
+        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        async function login() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-
-            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-                // حفظ الحالة في المتصفح ليبقى مسجلاً دخوله
-                sessionStorage.setItem('isAdmin', 'true');
+            const btn = document.getElementById('login-btn');
+            btn.innerText = "جاري التحقق... ⏳";
+            const { data, error } = await _supabase.from('staff').select('*').eq('email', email).eq('password', pass).single();
+            if (data) {
+                sessionStorage.setItem('isKing', 'true');
+                sessionStorage.setItem('kingName', data.full_name);
                 showPanel();
             } else {
-                alert("بيانات الدخول غير صحيحة يا ملك! ❌");
+                alert("بيانات الدخول خاطئة ❌");
+                btn.innerText = "دخول 🔐";
             }
         }
-
-        // وظيفة إظهار اللوحة
         function showPanel() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('welcome-msg').innerText = `مرحباً بك يا ${sessionStorage.getItem('kingName')} 👑`;
         }
-
-        // وظيفة تسجيل الخروج
-        function logout() {
-            sessionStorage.removeItem('isAdmin');
-            location.reload();
-        }
-
-        // فحص الجلسة عند فتح الصفحة
-        if (sessionStorage.getItem('isAdmin') === 'true') {
-            showPanel();
-        }
+        function logout() { sessionStorage.clear(); location.reload(); }
+        if (sessionStorage.getItem('isKing') === 'true') showPanel();
     </script>
 </body>
 </html>
