@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>شاشة المراقبة الملكية 🛡️</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+        .header { background: #1e293b; color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .msg-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 5px solid #c5a059; shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .user-info { font-weight: bold; color: #1e293b; display: flex; justify-content: space-between; }
+        .time { font-size: 0.8rem; color: #64748b; }
+        .content { margin-top: 10px; color: #334155; }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; background: #e2e8f0; }
+        .media-link { color: #2563eb; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📬 سجل الزوار والرسائل</h2>
+            <button onclick="fetchMessages()" style="background:#c5a059; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; color:white; font-weight:bold;">تحديث 🔄</button>
+        </div>
+        <div id="messages-list">جارٍ تحميل الرسائل...</div>
+    </div>
+
+    <script>
+        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+        async function fetchMessages() {
+            const { data, error } = await _supabase.from('incoming_messages').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('messages-list');
+            
+            if (error) { list.innerHTML = "خطأ في جلب البيانات."; return; }
+            if (data.length === 0) { list.innerHTML = "لا توجد رسائل حالياً."; return; }
+
+            list.innerHTML = data.map(m => `
+                <div class="msg-card">
+                    <div class="user-info">
+                        <span>👤 ${m.full_name} (@${m.username})</span>
+                        <span class="time">${new Date(m.created_at).toLocaleString('ar-EG')}</span>
+                    </div>
+                    <div class="content">
+                        <span class="badge">${m.media_type}</span> ${m.message_text || ''}
+                        ${m.media_file_id ? `<br><span class="media-link" onclick="alert('File ID: ${m.media_file_id}')">📎 ارفاق وسائط (موجود)</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        fetchMessages();
+        // تحديث تلقائي كل دقيقة
+        setInterval(fetchMessages, 60000);
+    </script>
+</body>
+</html>
