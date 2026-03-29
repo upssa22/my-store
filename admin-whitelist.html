@@ -1,35 +1,31 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>القائمة البيضاء | المقر الملكي 🛡️</title>
+    <meta charset="UTF-8"><title>المقر الملكي | الإدارة 🛡️</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg-gray: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-gray); margin: 0; padding: 20px; direction: rtl; }
-        .admin-nav { background: var(--royal-blue); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 4px solid var(--royal-gold); }
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nav-btn { text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; color: white; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
-        .active { background: var(--royal-gold); }
-        .content { background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
+        .nav { background: #1e293b; color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; border-bottom: 4px solid #c5a059; }
+        .content { background: white; padding: 50px; border-radius: 20px; margin-top: 20px; text-align: center; border: 1px solid #e2e8f0; color: #64748b; }
     </style>
 </head>
 <body>
-<div class="container" style="max-width:1000px; margin:auto;">
-    <div class="admin-nav">
-        <h3 style="color:white; margin:0;">🛡️ الحماية الملكية</h3>
-        <div class="nav-links">
-            <a href="admin.html" class="nav-btn">🏠 الرئيسية</a>
-            <a href="admin-whitelist.html" class="nav-btn active">🛡️ القائمة البيضاء</a>
-            <a href="admin-staff.html" class="nav-btn">👮 المشرفين</a>
-            <a href="admin-messages.html" class="nav-btn">📬 المراقبة</a>
-        </div>
+    <div class="nav">
+        <h2 id="page-title">إدارة القسم</h2>
+        <a href="admin.html" style="color:white; text-decoration:none;">🏠 الرئيسية</a>
     </div>
     <div class="content">
-        <h2 style="color:var(--royal-blue)">إدارة القائمة البيضاء 🛡️</h2>
-        <p>هنا يمكنك إضافة المعرفات (User IDs) للأشخاص المسموح لهم بتجاوز قيود البوت أو الحصول على هدايا تلقائية.</p>
-        <div style="font-size: 4rem; margin-top:20px;">💎</div>
+        <h2 id="msg">هذه الصفحة قيد التطوير البرمجي 🏗️</h2>
+        <p>سيتم ربط بيانات هذا القسم بقاعدة البيانات قريباً.</p>
+        <div style="font-size: 5rem;">🚧</div>
     </div>
-</div>
+    <script>
+        // كود بسيط لتغيير العنوان حسب اسم الملف
+        const path = window.location.pathname;
+        if(path.includes('sales')) document.getElementById('page-title').innerText = "💰 سجل المبيعات";
+        if(path.includes('users')) document.getElementById('page-title').innerText = "👥 سجل المستخدمين";
+        if(path.includes('staff')) document.getElementById('page-title').innerText = "👮 إدارة المشرفين";
+    </script>
 </body>
 </html>
