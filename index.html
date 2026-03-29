@@ -3,24 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المقر الملكي | تحت الصيانة ✨</title>
-    <style>
-        body { margin: 0; padding: 0; background: #1e293b; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
-        .box { padding: 40px; border: 2px solid #c5a059; border-radius: 30px; background: rgba(255,255,255,0.03); max-width: 500px; }
-        .gold { color: #c5a059; font-size: 4rem; margin-bottom: 20px; }
-        h1 { margin: 10px 0; font-size: 2rem; }
-        p { color: #94a3b8; line-height: 1.6; }
-        .loader { width: 50px; height: 50px; border: 5px solid #94a3b8; border-top: 5px solid #c5a059; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    <title id="page-title">متجرنا الإلكتروني</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style id="theme-style">
+        :root { --primary-color: #1e293b; --accent-color: #3b82f6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8fafc; direction: rtl; }
+        .header { background: var(--primary-color); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .card { background: white; border-radius: 15px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .card img { width: 100%; height: 130px; object-fit: contain; border-radius: 10px; }
+        .card h3 { font-size: 1rem; margin: 10px 0 5px; color: #334155; }
+        .price { color: var(--accent-color); font-weight: bold; font-size: 1.1rem; }
+        .buy-btn { background: var(--primary-color); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .loading-screen { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <div class="gold">🏰</div>
-        <h1>المقر الملكي في صيانة</h1>
-        <p>يا زائرنا الكريم، نحن نقوم الآن بتجهيز أحدث ملصقات منوبولي وتطوير المتجر لخدمتكم بشكل أفضل. سنعود قريباً جداً!</p>
-        <div class="loader"></div>
-        <p style="font-size: 0.8rem;">ترقبوا الافتتاح الكبير ✨</p>
-    </div>
+
+<div id="loading" class="loading-screen">
+    <h3>جاري تجهيز المتجر... ✨</h3>
+</div>
+
+<header class="header">
+    <h1 id="store-name">متجرنا</h1>
+    <p id="store-slogan">أفضل المنتجات بين يديك</p>
+</header>
+
+<div class="container">
+    <div id="products-list" class="products-grid">
+        </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function initStore() {
+        // 1. استخراج الـ Store ID من الرابط (URL Query)
+        const urlParams = new URLSearchParams(window.location.search);
+        let storeId = urlParams.get('id');
+
+        // ملاحظة للمستقبل: هنا يمكن إضافة كود للتعرف على الدومين الفرعي (Subdomain)
+        
+        if (!storeId) {
+            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>عذراً، الرابط غير صحيح أو المتجر غير موجود 🛑</h2>";
+            return;
+        }
+
+        // 2. جلب بيانات المتجر (الاسم، اللون)
+        const { data: store, error: sErr } = await _supabase
+            .from('stores')
+            .select('*')
+            .eq('id', storeId)
+            .single();
+
+        if (sErr || !store) {
+            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>المتجر الذي تبحث عنه غير موجود حالياً.</h2>";
+            return;
+        }
+
+        // 3. تطبيق هوية المتجر (الألوان والاسم)
+        document.getElementById('store-name').innerText = store.store_name;
+        document.getElementById('page-title').innerText = store.store_name;
+        document.documentElement.style.setProperty('--primary-color', store.theme_color || '#1e293b');
+        
+        // 4. جلب منتجات هذا المتجر فقط
+        const { data: products } = await _supabase
+            .from('products')
+            .select('*')
+            .eq('store_id', storeId)
+            .eq('status', 'available');
+
+        const list = document.getElementById('products-list');
+        if (products && products.length > 0) {
+            list.innerHTML = products.map(p => `
+                <div class="card">
+                    <img src="${p.image_url || 'https://via.placeholder.com/150'}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <div class="price">${p.price} ر.س</div>
+                    <button class="buy-btn" onclick="orderProduct('${p.name}', '${store.bot_token}')">طلب عبر تليجرام 💬</button>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#94a3b8;'>لا توجد منتجات متوفرة حالياً في هذا المتجر.</p>";
+        }
+
+        // إخفاء شاشة التحميل
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function orderProduct(name, botToken) {
+        // هنا يمكن توجيه الزبون لبوت التليجرام الخاص بالمتجر مباشرة
+        alert("سيتم توجيهك الآن لطلب: " + name);
+        // يمكنك إضافة رابط البوت هنا: window.location.href = `https://t.me/YourBotName?start=order_${name}`;
+    }
+
+    initStore();
+</script>
+
 </body>
 </html>
