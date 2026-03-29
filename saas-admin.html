@@ -2,158 +2,146 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدير المنصة | الإدارة العليا 🌐</title>
+    <title>الإدارة العليا للمنصة | SaaS Dashboard 🌐</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --danger: #ef4444; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        :root { --primary: #0f172a; --accent: #3b82f6; --gold: #f59e0b; --danger: #ef4444; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        .header { background: var(--primary); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold); }
+        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         
-        /* الهيدر الرئيسي */
-        .super-header { background: var(--primary); color: white; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--accent); }
-        .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1100px; margin: -30px auto 30px; padding: 0 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid var(--accent); }
-        .stat-card h3 { margin: 0; color: #64748b; font-size: 0.9rem; }
-        .stat-card div { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-top: 5px; }
-
-        /* قائمة المتاجر */
-        .main-content { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        .stores-table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: right; color: #64748b; font-size: 0.85rem; border-bottom: 2px solid #edf2f7; }
+        /* كروت التقرير السريع */
+        .report-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 600px; padding: 30px; border-radius: 20px; position: relative; }
+        
+        /* الجدول المطور */
+        .stores-card { background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: #f1f5f9; padding: 15px; text-align: right; font-size: 0.85rem; color: #475569; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
-        .store-name { font-weight: bold; color: var(--primary); display: block; }
-        .store-email { font-size: 0.8rem; color: #94a3b8; }
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
-        .badge-active { background: #dcfce7; color: #166534; }
+        /* الأزرار */
+        .btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition: 0.2s; text-decoration: none; display: inline-block; }
+        .btn-link { background: #dbeafe; color: #1e40af; }
+        .btn-report { background: #fef3c7; color: #92400e; margin: 0 5px; }
+        .btn-del { background: #fee2e2; color: #b91c1c; }
         
-        .btn-del { background: #fee2e2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-del:hover { background: var(--danger); color: white; }
-        
-        .empty-state { padding: 50px; text-align: center; color: #94a3b8; }
+        .sub-alert { font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+        .sub-valid { background: #dcfce7; color: #166534; }
+        .sub-expired { background: #fee2e2; color: #b91c1c; }
     </style>
 </head>
 <body>
 
-<header class="super-header">
+<header class="header">
     <div>
-        <h1 style="margin:0; font-size: 1.5rem;">🌐 لوحة تحكم المنصة (SaaS Admin)</h1>
-        <small style="opacity: 0.7;">إدارة المتاجر والعملاء المشتركين</small>
+        <h1 style="margin:0; font-size: 1.4rem;">🌐 نظام إدارة SaaS Users</h1>
+        <small id="user-info">جاري التحقق من الصلاحيات...</small>
     </div>
-    <div style="font-weight: bold;">المطور الرئيسي ✨</div>
+    <button class="btn btn-del" onclick="logout()">تسجيل خروج</button>
 </header>
 
-<div class="main-content">
-    <div class="stats-bar">
-        <div class="stat-card">
-            <h3>إجمالي المتاجر</h3>
-            <div id="total-stores">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>المتاجر النشطة</h3>
-            <div id="active-stores" style="color: #10b981;">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>عمليات التسجيل (اليوم)</h3>
-            <div id="today-stores">0</div>
-        </div>
-    </div>
-
-    <div class="stores-table-container">
+<div class="main-container">
+    <div class="stores-card">
         <table>
             <thead>
                 <tr>
-                    <th>اسم المتجر / المالك</th>
-                    <th>معرف المتجر (ID)</th>
-                    <th>تاريخ التأسيس</th>
-                    <th>الحالة</th>
+                    <th>المتجر والتاجر</th>
+                    <th>الاشتراك</th>
+                    <th>الرابط</th>
                     <th>إجراءات</th>
                 </tr>
             </thead>
-            <tbody id="stores-tbody">
-                </tbody>
+            <tbody id="stores-tbody"></tbody>
         </table>
-        <div id="loading-state" class="empty-state">جاري جلب بيانات المتاجر...</div>
+    </div>
+</div>
+
+<div id="reportModal" class="report-modal">
+    <div class="modal-content">
+        <h2 id="rep-store-name">تقرير المتجر</h2>
+        <hr>
+        <div id="rep-details" style="line-height: 2;">
+            </div>
+        <button class="btn btn-del" onclick="closeModal()" style="width: 100%; margin-top: 20px;">إغلاق التقرير</button>
     </div>
 </div>
 
 <script>
     const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-    async function fetchDashboardData() {
-        // 1. جلب كافة المتاجر
-        const { data: stores, error } = await _supabase
-            .from('stores')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error(error);
-            alert("فشل في جلب البيانات!");
+    // 1. نظام حماية SaaS Users
+    async function checkSaaSAuth() {
+        const saasUser = JSON.parse(sessionStorage.getItem('saasUser'));
+        if (!saasUser) {
+            window.location.href = 'admin.html'; // أو صفحة دخول مخصصة للـ SaaS
             return;
         }
+        document.getElementById('user-info').innerText = `المسؤول: ${saasUser.full_name} (${saasUser.role})`;
+        loadStores();
+    }
 
-        // 2. تحديث الإحصائيات
-        document.getElementById('total-stores').innerText = stores.length;
-        document.getElementById('active-stores').innerText = stores.filter(s => s.is_active).length;
-        
-        const today = new Date().toISOString().split('T')[0];
-        const todayCount = stores.filter(s => s.created_at.startsWith(today)).length;
-        document.getElementById('today-stores').innerText = todayCount;
-
-        // 3. بناء الجدول
+    // 2. جلب المتاجر مع حسابات الاشتراكات
+    async function loadStores() {
+        const { data: stores, error } = await _supabase.from('stores').select('*').order('created_at', { ascending: false });
         const tbody = document.getElementById('stores-tbody');
-        const loading = document.getElementById('loading-state');
         
-        if (stores.length === 0) {
-            loading.innerText = "لا يوجد أي متجر مسجل حالياً.";
-            return;
-        }
+        tbody.innerHTML = stores.map(store => {
+            const today = new Date();
+            const end = new Date(store.subscription_end);
+            const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            const isExpired = diffDays < 0;
 
-        loading.style.display = 'none';
-        tbody.innerHTML = stores.map(store => `
-            <tr>
-                <td>
-                    <span class="store-name">${store.store_name || 'بدون اسم'}</span>
-                    <span class="store-email">${store.owner_email}</span>
-                </td>
-                <td style="font-family: monospace; font-size: 0.75rem; color: #64748b;">
-                    ${store.id}
-                </td>
-                <td style="font-size: 0.85rem; color: #475569;">
-                    ${new Date(store.created_at).toLocaleDateString('ar-EG')}
-                </td>
-                <td>
-                    <span class="badge ${store.is_active ? 'badge-active' : ''}">
-                        ${store.is_active ? 'نشط' : 'متوقف'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn-del" onclick="confirmDelete('${store.id}', '${store.store_name}')">حذف نهائي 🗑️</button>
-                </td>
-            </tr>
-        `).join('');
+            return `
+                <tr>
+                    <td>
+                        <strong>${store.store_name}</strong><br>
+                        <small>${store.owner_email}</small>
+                    </td>
+                    <td>
+                        <span class="sub-alert ${isExpired ? 'sub-expired' : 'sub-valid'}">
+                            ${isExpired ? 'منتهي' : `باقي ${diffDays} يوم`}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="index.html?id=${store.id}" target="_blank" class="btn btn-link">فتح المتجر 🔗</a>
+                    </td>
+                    <td>
+                        <button class="btn btn-report" onclick="showReport('${store.id}')">تقرير كامل 📊</button>
+                        <button class="btn btn-del" onclick="deleteStore('${store.id}')">حذف</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    async function confirmDelete(id, name) {
-        const check = confirm(`⚠️ تنبيه خطير:\nهل أنت متأكد من حذف متجر "${name}"؟\nسيتم مسح كافة المنتجات والرسائل والمشرفين المرتبطين بهذا المتجر ولا يمكن التراجع!`);
+    // 3. عرض تقرير المبيعات والمعلومات الشامل
+    async function showReport(storeId) {
+        const { data: store } = await _supabase.from('stores').select('*').eq('id', storeId).single();
+        const { data: sales } = await _supabase.from('sales').select('price').eq('store_id', storeId);
         
-        if (check) {
-            const { error } = await _supabase.from('stores').delete().eq('id', id);
-            if (!error) {
-                alert("تم حذف المتجر وجميع بياناته بنجاح.");
-                fetchDashboardData(); // تحديث القائمة
-            } else {
-                alert("خطأ أثناء الحذف: " + error.message);
-            }
-        }
+        const totalSales = sales.reduce((sum, s) => sum + (s.price || 0), 0);
+        const modal = document.getElementById('reportModal');
+        const details = document.getElementById('rep-details');
+        
+        document.getElementById('rep-store-name').innerText = `تقرير: ${store.store_name}`;
+        details.innerHTML = `
+            <b>📧 الإيميل:</b> ${store.owner_email}<br>
+            <b>📱 الجوال:</b> ${store.phone_number || 'غير مسجل'}<br>
+            <b>📅 نهاية الاشتراك:</b> ${store.subscription_end}<br>
+            <b>💰 إجمالي المبيعات:</b> ${totalSales.toFixed(2)} ر.س<br>
+            <b>📦 عدد الطلبات:</b> ${sales.length}<br>
+            <b>🤖 توكن البوت:</b> <small style="color:gray">${store.bot_token}</small>
+        `;
+        modal.style.display = 'flex';
     }
 
-    // التشغيل الأولي
-    fetchDashboardData();
+    function closeModal() { document.getElementById('reportModal').style.display = 'none'; }
+    
+    function logout() { sessionStorage.clear(); window.location.href = 'admin.html'; }
+
+    checkSaaSAuth();
 </script>
-
 </body>
 </html>
