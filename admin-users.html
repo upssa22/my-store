@@ -1,36 +1,25 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>المستخدمين | المقر الملكي 👥</title>
+    <meta charset="UTF-8"><title>سجل المستخدمين | المقر الملكي 👥</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg-gray: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-gray); margin: 0; padding: 20px; direction: rtl; }
-        .admin-nav { background: var(--royal-blue); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 4px solid var(--royal-gold); }
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nav-btn { text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; color: white; background: rgba(255,255,255,0.1); }
-        .active { background: var(--royal-gold); }
-        .content { background: white; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
+        .nav { background: #1e293b; color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; border-bottom: 4px solid #c5a059; }
+        .content { background: white; padding: 50px; border-radius: 20px; margin-top: 20px; text-align: center; border: 1px solid #e2e8f0; color: #64748b; }
+        .btn-home { color: white; text-decoration: none; font-weight: bold; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; }
     </style>
 </head>
 <body>
-<div class="container" style="max-width:1000px; margin:auto;">
-    <div class="admin-nav">
-        <h3 style="color:white; margin:0;">👥 سجل الزبائن</h3>
-        <div class="nav-links">
-            <a href="admin.html" class="nav-btn">🏠 الرئيسية</a>
-            <a href="admin-products.html" class="nav-btn">📦 المنتجات</a>
-            <a href="admin-messages.html" class="nav-btn">📬 المراقبة</a>
-            <a href="admin-users.html" class="nav-btn active">👥 المستخدمين</a>
-            <a href="admin-settings.html" class="nav-btn">⚙️ الإعدادات</a>
-        </div>
+    <div class="nav">
+        <h2>👥 قاعدة بيانات المستخدمين</h2>
+        <a href="admin.html" class="btn-home">🏠 العودة للرئيسية</a>
     </div>
     <div class="content">
-        <h2 style="color:var(--royal-blue)">قاعدة بيانات المستخدمين 🔐</h2>
-        <p>هنا ستتمكن من رؤية يوزرات التليجرام لكل زبائنك وتاريخ أول تواصل لهم.</p>
-        <div style="font-size: 4rem;">📂</div>
+        <h2>سجل الزبائن 👤</h2>
+        <p>سيتم عرض قائمة بكل من تواصل مع البوت ومعلوماتهم هنا.</p>
+        <div style="font-size: 5rem;">📂</div>
     </div>
-</div>
 </body>
 </html>
