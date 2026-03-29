@@ -1,0 +1,13 @@
+{
+  "name": "royal-monopoly-store",
+  "version": "1.0.0",
+  "description": "المقر الملكي للشحن - نظام الأرشفة والمنتجات",
+  "main": "api/send.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
