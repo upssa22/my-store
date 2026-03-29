@@ -1,187 +1,46 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاشة المراقبة الملكية 🛡️</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="js/app-config.js"></script>
-    <style>
-        :root {
-            --royal-blue: #1e293b;
-            --royal-gold: #c5a059;
-            --bg-gray: #f8fafc;
-            --text-main: #334155;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-gray); 
-            margin: 0; 
-            padding: 20px; 
-            direction: rtl; 
-            color: var(--text-main);
-        }
-
-        .container { 
-            max-width: 900px; 
-            margin: auto; 
-        }
-
-        .header { 
-            background: var(--royal-blue); 
-            color: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 30px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-bottom: 4px solid var(--royal-gold);
-        }
-
-        .header h2 { margin: 0; font-size: 1.5rem; }
-
-        .btn-refresh { 
-            background: var(--royal-gold); 
-            border: none; 
-            padding: 10px 25px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            color: white; 
-            font-weight: bold; 
-            transition: transform 0.2s;
-        }
-
-        .btn-refresh:active { transform: scale(0.95); }
-
-        .msg-card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 15px; 
-            border-right: 6px solid var(--royal-gold); 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .msg-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-
-        .user-info { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            border-bottom: 1px dashed #e2e8f0;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .user-name { font-weight: 800; color: var(--royal-blue); font-size: 1.1rem; }
+<script>
+    // هذه الوظيفة الجديدة لجلب الرابط الحقيقي للملف من تليجرام
+    async function viewMedia(fileId, type) {
+        const BOT_TOKEN = CONFIG.TELEGRAM_TOKEN; // تأكد أن التوكن موجود في CONFIG
         
-        .username-tag { color: var(--royal-gold); font-size: 0.9rem; margin-right: 5px; }
-
-        .time { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
-
-        .content { 
-            line-height: 1.6; 
-            font-size: 1rem; 
-            word-wrap: break-word;
-        }
-
-        .badge { 
-            display: inline-block;
-            padding: 4px 12px; 
-            border-radius: 20px; 
-            font-size: 0.75rem; 
-            background: #f1f5f9; 
-            color: #64748b;
-            font-weight: bold;
-            margin-left: 10px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .media-indicator {
-            margin-top: 15px;
-            padding: 10px;
-            background: #fffbeb;
-            border-radius: 10px;
-            border: 1px solid #fef3c7;
-            display: inline-flex;
-            align-items: center;
-            color: #b45309;
-            font-size: 0.9rem;
-        }
-
-        .empty-state { text-align: center; padding: 50px; color: #94a3b8; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>📬 سجل زوار المقر الملكي</h2>
-            <button class="btn-refresh" onclick="fetchMessages()">تحديث الآن 🔄</button>
-        </div>
-        
-        <div id="messages-list">
-            <div class="empty-state">جاري استدعاء البيانات من المقر...</div>
-        </div>
-    </div>
-
-    <script>
-        const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-
-        async function fetchMessages() {
-            const { data, error } = await _supabase
-                .from('incoming_messages')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            const list = document.getElementById('messages-list');
+        try {
+            // 1. نطلب من تليجرام مسار الملف
+            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+            const data = await res.json();
             
-            if (error) { 
-                list.innerHTML = `<div class="empty-state">❌ خطأ في الاتصال: ${error.message}</div>`; 
-                return; 
+            if (data.ok) {
+                const filePath = data.result.file_path;
+                const fullUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+                
+                // 2. عرض الملف حسب نوعه
+                if (type === 'photo') {
+                    window.open(fullUrl, '_blank'); // يفتح الصورة في صفحة جديدة
+                } else if (type === 'voice' || type === 'audio') {
+                    const audio = new Audio(fullUrl);
+                    audio.play();
+                    alert("📢 جاري تشغيل البصمة الصوتية...");
+                }
+            } else {
+                alert("❌ عذراً ملكي، تليجرام حذف الملف من سيرفراته (عادة بعد 24 ساعة).");
             }
-            
-            if (!data || data.length === 0) { 
-                list.innerHTML = `<div class="empty-state">📭 لا توجد رسائل مسجلة حتى الآن.</div>`; 
-                return; 
-            }
-
-            list.innerHTML = data.map(m => `
-                <div class="msg-card">
-                    <div class="user-info">
-                        <div>
-                            <span class="user-name">👤 ${m.full_name}</span>
-                            <span class="username-tag">@${m.username || 'بدون_يوزر'}</span>
-                        </div>
-                        <span class="time">${new Date(m.created_at).toLocaleString('ar-EG')}</span>
-                    </div>
-                    <div class="content">
-                        <span class="badge">نوع: ${getArabicType(m.media_type)}</span> 
-                        ${m.message_text || '<span style="color:#94a3b8">رسالة فارغة</span>'}
-                        
-                        ${m.media_file_id ? `
-                            <div class="media-indicator">
-                                📎 توجد وسائط مرفقة (ID: ${m.media_file_id})
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
+        } catch (e) {
+            alert("⚠️ خطأ في جلب الملف.");
         }
+    }
 
-        function getArabicType(type) {
-            const types = { 'text': 'نص', 'photo': 'صورة 🖼️', 'voice': 'بصمة صوتية 🎙️', 'audio': 'ملف صوتي 🎵' };
-            return types[type] || type;
-        }
+    // تعديل سطر العرض في الكود السابق ليكون هكذا:
+    // ${m.media_file_id ? `<button onclick="viewMedia('${m.media_file_id}', '${m.media_type}')" class="media-btn">👁️ عرض الوسائط</button>` : ''}
+</script>
 
-        // تشغيل الجلب فور فتح الصفحة
-        fetchMessages();
-        
-        // تحديث تلقائي كل دقيقة لتبقى على اطلاع
-        setInterval(fetchMessages, 60000);
-    </script>
-</body>
-</html>
+<style>
+    .media-btn {
+        margin-top: 10px;
+        padding: 8px 15px;
+        background: #c5a059;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
