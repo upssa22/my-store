@@ -2,31 +2,100 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم | مونوپولي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المقر الملكي | لوحة التحكم المركزية 👑</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --main: #0088cc; --dark: #2c3e50; --bg: #f0f2f5; }
-        body { font-family: system-ui; background: var(--bg); margin: 0; direction: rtl; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 40px; }
-        .card { background: white; padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,136,204,0.2); }
+        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg-gray: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-gray); margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 1100px; margin: auto; }
+        
+        /* الهيدر الملكي المركزي */
+        .admin-nav { 
+            background: var(--royal-blue); 
+            padding: 25px; 
+            border-radius: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            border-bottom: 5px solid var(--royal-gold);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-links { display: flex; gap: 12px; }
+        .nav-btn { text-decoration: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+        
+        .btn-messages { background: #3b82f6; color: white; }
+        .btn-messages:hover { background: #2563eb; transform: translateY(-2px); }
+        
+        .btn-gold { background: var(--royal-gold); color: white; }
+        .btn-gold:hover { background: #b08d4a; transform: translateY(-2px); }
+
+        /* نموذج إضافة منتج */
+        .add-form { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 35px; border: 1px solid #e2e8f0; }
+        .form-header { margin-bottom: 20px; border-right: 4px solid var(--royal-gold); padding-right: 15px; }
+        
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select { padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-family: inherit; font-size: 1rem; }
+        input:focus, select:focus { border-color: var(--royal-gold); box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1); }
+
+        /* شبكة المنتجات */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .p-card { background: white; border-radius: 18px; padding: 18px; text-align: center; border: 1px solid #e2e8f0; transition: 0.3s; position: relative; }
+        .p-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .p-card img { width: 100%; height: 160px; object-fit: contain; border-radius: 12px; margin-bottom: 15px; background: #fafafa; }
+        
+        .p-category { font-size: 0.7rem; background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 8px; font-weight: 800; position: absolute; top: 10px; right: 10px; border: 1px solid #dbeafe; }
+        .p-name { font-weight: 700; color: var(--royal-blue); margin-bottom: 8px; }
+        .p-price { color: var(--royal-gold); font-weight: 900; font-size: 1.2rem; margin-bottom: 15px; }
+        
+        .delete-btn { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; padding: 8px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; width: 100%; transition: 0.2s; font-weight: bold; }
+        .delete-btn:hover { background: #be123c; color: white; }
     </style>
 </head>
 <body>
-    <div style="background:var(--dark); color:white; padding:20px; text-align:center;">
-        <h1 id="title">لوحة التحكم</h1>
+
+<div class="container">
+    <div class="admin-nav">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: var(--royal-gold); padding: 10px; border-radius: 12px; font-size: 1.5rem;">🏰</div>
+            <h2 style="color: white; margin: 0;">إدارة المقر الملكي</h2>
+        </div>
+        <div class="nav-links">
+            <a href="admin-messages.html" class="nav-btn btn-messages">📬 سجل الرسائل والوسائط</a>
+            <a href="index.html" target="_blank" class="nav-btn" style="color: white; background: rgba(255,255,255,0.1);">🌐 عرض المتجر</a>
+        </div>
     </div>
-    <div class="grid">
-    <div class="card" onclick="location.href=CONFIG.PATH_PRODUCTS"><span>📦</span><h3>المنتجات</h3></div>
-    <div class="card" onclick="location.href=CONFIG.PATH_USERS"><span>👥</span><h3>الزبائن</h3></div>
-    <div class="card" onclick="location.href='admin-whitelist.html'"><span>🛡️</span><h3>القائمة البيضاء</h3></div>
-    <div class="card" onclick="location.href=CONFIG.PATH_SALES"><span>🧾</span><h3>المبيعات</h3></div>
-    <div class="card" onclick="location.href=CONFIG.PATH_STAFF"><span>👮</span><h3>الطاقم</h3></div>
-    <div class="card" onclick="location.href='admin-settings.html'"><span>🎨</span><h3>إعدادات المظهر</h3></div>
+
+    <div class="add-form">
+        <div class="form-header">
+            <h3 style="margin: 0; color: var(--royal-blue);">إضافة ملصق جديد</h3>
+            <small style="color: #64748b;">اختر القسم المناسب (4 نجوم، 5 نجوم، أو ذهبي)</small>
+        </div>
+        <div class="form-grid">
+            <input type="text" id="p-name" placeholder="اسم الملصق">
+            <input type="number" id="p-price" placeholder="السعر (ر.س)">
+            <select id="p-category">
+                <option value="⭐ 4 نجوم">⭐ 4 نجوم</option>
+                <option value="⭐⭐ 5 نجوم">⭐⭐ 5 نجوم</option>
+                <option value="🏆 ملصق ذهبي">🏆 ملصق ذهبي</option>
+                <option value="📦 عروض خاصة">📦 عروض خاصة</option>
+            </select>
+        </div>
+        <input type="text" id="p-image" placeholder="رابط صورة الملصق" style="width: 100%; margin-bottom: 15px;">
+        <button onclick="addProduct()" class="nav-btn btn-gold" style="width: 100%; justify-content: center; padding: 16px;">اعتماد ونشر المنتج الملكي ✨</button>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="color: var(--royal-blue); margin: 0;">الملصقات المعروضة حالياً</h3>
+        <span id="product-count" style="background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">تحميل...</span>
+    </div>
+    
+    <div id="products-list" class="products-grid">
+        </div>
 </div>
-    <script>
-        document.getElementById('title').innerText = CONFIG.STORE_NAME;
-    </script>
-</body>
-</html>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE
