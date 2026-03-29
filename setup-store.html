@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأسيس إمبراطوريتك | منصة المتاجر الملكية 🚀</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --royal: #1e293b; --gold: #c5a059; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        .setup-container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-top: 10px solid var(--gold); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--royal); margin: 10px 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--royal); }
+        input, select { width: 100%; padding: 14px; border: 1.5px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1); }
+        .btn-launch { background: var(--royal); color: white; border: none; padding: 18px; width: 100%; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-launch:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(30, 41, 59, 0.2); }
+        .success-msg { display: none; text-align: center; color: #10b981; background: #ecfdf5; padding: 20px; border-radius: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="setup-container">
+    <div class="header">
+        <div style="font-size: 4rem;">🚀</div>
+        <h1>أطلق متجرك الملكي</h1>
+        <p style="color: #64748b;">قم بتعبئة بياناتك الأساسية لتبدأ البيع عبر التليجرام والموقع فوراً.</p>
+    </div>
+
+    <div id="setup-form">
+        <div class="form-group">
+            <label>📧 بريدك الإلكتروني (للدخول للإدارة):</label>
+            <input type="email" id="owner-email" placeholder="example@mail.com">
+        </div>
+
+        <div class="form-group">
+            <label>🔑 كلمة المرور المقترحة:</label>
+            <input type="password" id="owner-pass" placeholder="اختر كلمة سر قوية">
+        </div>
+
+        <div class="form-group">
+            <label>🏰 اسم المتجر الجديد:</label>
+            <input type="text" id="store-name" placeholder="مثال: متجر الصقر الذهبي">
+        </div>
+
+        <div class="form-group">
+            <label>🤖 توكن بوت التليجرام (اختياري حالياً):</label>
+            <input type="text" id="bot-token" placeholder="Bot Token من BotFather">
+        </div>
+
+        <div class="form-group">
+            <label>🎨 لون هوية المتجر:</label>
+            <input type="color" id="theme-color" value="#1e293b" style="height: 50px; cursor: pointer;">
+        </div>
+
+        <button class="btn-launch" onclick="launchSaaS()">إطلاق المتجر الآن ✨</button>
+    </div>
+
+    <div id="success-area" class="success-msg">
+        <h3>تهانينا يا ملك! تم إنشاء متجرك 🎉</h3>
+        <p id="store-id-display"></p>
+        <p>يمكنك الآن الدخول للوحة التحكم باستخدام بريدك وكلمة السر.</p>
+        <a href="admin.html" id="admin-link" style="display:inline-block; margin-top:10px; color: var(--royal); font-weight: bold;">انقر هنا للذهاب للوحة الإدارة ⬅️</a>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function launchSaaS() {
+        const email = document.getElementById('owner-email').value;
+        const pass = document.getElementById('owner-pass').value;
+        const name = document.getElementById('store-name').value;
+        const token = document.getElementById('bot-token').value;
+        const color = document.getElementById('theme-color').value;
+
+        if(!email || !pass || !name) return alert("يرجى إكمال البيانات الأساسية!");
+
+        // 1. إنشاء المتجر في جدول stores
+        const { data: storeData, error: storeError } = await _supabase
+            .from('stores')
+            .insert([{ 
+                owner_email: email, 
+                store_name: name, 
+                bot_token: token, 
+                theme_color: color 
+            }])
+            .select()
+            .single();
+
+        if (storeError) return alert("خطأ في إنشاء المتجر: " + storeError.message);
+
+        // 2. إنشاء حساب مشرف (Owner) لهذا المتجر في جدول staff
+        const { error: staffError } = await _supabase
+            .from('staff')
+            .insert([{ 
+                full_name: "صاحب المتجر", 
+                email: email, 
+                password: pass, 
+                role: 'owner',
+                store_id: storeData.id 
+            }]);
+
+        if (staffError) return alert("خطأ في إنشاء حساب المشرف: " + staffError.message);
+
+        // 3. نجاح العملية
+        document.getElementById('setup-form').style.display = 'none';
+        document.getElementById('success-area').style.display = 'block';
+        document.getElementById('store-id-display').innerText = `معرف متجرك الفريد هو: ${storeData.id}`;
+        
+        // توجيه لصفحة الإدارة مع الـ Store ID
+        document.getElementById('admin-link').href = `admin.html?store_id=${storeData.id}`;
+    }
+</script>
+
+</body>
+</html>
