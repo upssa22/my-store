@@ -3,67 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تأسيس إمبراطوريتك | منصة المتاجر الملكية 🚀</title>
+    <title>تأسيس المتجر | منصة التجارة الذكية 🚀</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="js/app-config.js"></script>
     <style>
-        :root { --royal: #1e293b; --gold: #c5a059; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
-        .setup-container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-top: 10px solid var(--gold); }
+        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; direction: rtl; }
+        .setup-container { max-width: 550px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 6px solid var(--accent); }
         .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: var(--royal); margin: 10px 0; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--royal); }
-        input, select { width: 100%; padding: 14px; border: 1.5px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1); }
-        .btn-launch { background: var(--royal); color: white; border: none; padding: 18px; width: 100%; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-launch:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(30, 41, 59, 0.2); }
-        .success-msg { display: none; text-align: center; color: #10b981; background: #ecfdf5; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        .header h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 10px; }
+        .header p { color: #64748b; font-size: 0.95rem; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: #334155; font-size: 0.9rem; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
+        input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .btn-launch { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-launch:hover { background: #0f172a; transform: translateY(-2px); }
+        .success-box { display: none; text-align: center; padding: 20px; background: #f0fdf4; border-radius: 15px; border: 1px solid #bbf7d0; }
     </style>
 </head>
 <body>
 
 <div class="setup-container">
-    <div class="header">
-        <div style="font-size: 4rem;">🚀</div>
-        <h1>أطلق متجرك الملكي</h1>
-        <p style="color: #64748b;">قم بتعبئة بياناتك الأساسية لتبدأ البيع عبر التليجرام والموقع فوراً.</p>
-    </div>
-
     <div id="setup-form">
-        <div class="form-group">
-            <label>📧 بريدك الإلكتروني (للدخول للإدارة):</label>
-            <input type="email" id="owner-email" placeholder="example@mail.com">
+        <div class="header">
+            <h1>أطلق متجرك الخاص 🚀</h1>
+            <p>ابدأ تجارتك عبر التليجرام والموقع في دقائق معدودة</p>
         </div>
 
         <div class="form-group">
-            <label>🔑 كلمة المرور المقترحة:</label>
-            <input type="password" id="owner-pass" placeholder="اختر كلمة سر قوية">
+            <label>البريد الإلكتروني للإدارة:</label>
+            <input type="email" id="owner-email" placeholder="email@example.com">
         </div>
 
         <div class="form-group">
-            <label>🏰 اسم المتجر الجديد:</label>
-            <input type="text" id="store-name" placeholder="مثال: متجر الصقر الذهبي">
+            <label>كلمة المرور:</label>
+            <input type="password" id="owner-pass" placeholder="كلمة مرور قوية">
         </div>
 
         <div class="form-group">
-            <label>🤖 توكن بوت التليجرام (اختياري حالياً):</label>
-            <input type="text" id="bot-token" placeholder="Bot Token من BotFather">
+            <label>اسم المتجر:</label>
+            <input type="text" id="store-name" placeholder="مثلاً: متجر المبدع">
         </div>
 
         <div class="form-group">
-            <label>🎨 لون هوية المتجر:</label>
-            <input type="color" id="theme-color" value="#1e293b" style="height: 50px; cursor: pointer;">
+            <label>توكن بوت التليجرام (اختياري):</label>
+            <input type="text" id="bot-token" placeholder="Bot Token">
         </div>
 
-        <button class="btn-launch" onclick="launchSaaS()">إطلاق المتجر الآن ✨</button>
+        <div class="form-group">
+            <label>لون هوية المتجر:</label>
+            <input type="color" id="theme-color" value="#1e293b" style="height: 45px; padding: 2px;">
+        </div>
+
+        <button class="btn-launch" onclick="launchSaaS()">تفعيل المتجر الآن ✨</button>
     </div>
 
-    <div id="success-area" class="success-msg">
-        <h3>تهانينا يا ملك! تم إنشاء متجرك 🎉</h3>
-        <p id="store-id-display"></p>
-        <p>يمكنك الآن الدخول للوحة التحكم باستخدام بريدك وكلمة السر.</p>
-        <a href="admin.html" id="admin-link" style="display:inline-block; margin-top:10px; color: var(--royal); font-weight: bold;">انقر هنا للذهاب للوحة الإدارة ⬅️</a>
+    <div id="success-area" class="success-box">
+        <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+        <h2 style="color: #166534; margin: 0 0 10px 0;">تم إنشاء متجرك بنجاح!</h2>
+        <p style="color: #1e40af; font-weight: bold;" id="store-id-display"></p>
+        <p style="color: #4b5563;">يمكنك الآن التوجه للوحة التحكم لإضافة منتجاتك.</p>
+        <a href="admin.html" id="admin-link" style="display: block; margin-top: 20px; color: var(--accent); font-weight: bold; text-decoration: none;">الانتقال للوحة التحكم ⬅️</a>
     </div>
 </div>
 
@@ -77,9 +78,9 @@
         const token = document.getElementById('bot-token').value;
         const color = document.getElementById('theme-color').value;
 
-        if(!email || !pass || !name) return alert("يرجى إكمال البيانات الأساسية!");
+        if(!email || !pass || !name) return alert("يرجى ملء كافة الخانات المطلوبة!");
 
-        // 1. إنشاء المتجر في جدول stores
+        // 1. إنشاء السجل في جدول stores
         const { data: storeData, error: storeError } = await _supabase
             .from('stores')
             .insert([{ 
@@ -91,27 +92,26 @@
             .select()
             .single();
 
-        if (storeError) return alert("خطأ في إنشاء المتجر: " + storeError.message);
+        if (storeError) return alert("فشل في إنشاء المتجر: " + storeError.message);
 
-        // 2. إنشاء حساب مشرف (Owner) لهذا المتجر في جدول staff
+        // 2. ربط المستخدم بجدول staff كمالك (Owner) لهذا المتجر
         const { error: staffError } = await _supabase
             .from('staff')
             .insert([{ 
-                full_name: "صاحب المتجر", 
+                full_name: "مدير المتجر", 
                 email: email, 
                 password: pass, 
                 role: 'owner',
                 store_id: storeData.id 
             }]);
 
-        if (staffError) return alert("خطأ في إنشاء حساب المشرف: " + staffError.message);
+        if (staffError) return alert("فشل في إعداد حساب الإدارة!");
 
-        // 3. نجاح العملية
+        // 3. عرض رسالة النجاح وتجهيز رابط الإدارة
         document.getElementById('setup-form').style.display = 'none';
-        document.getElementById('success-area').style.display = 'block';
-        document.getElementById('store-id-display').innerText = `معرف متجرك الفريد هو: ${storeData.id}`;
-        
-        // توجيه لصفحة الإدارة مع الـ Store ID
+        const successBox = document.getElementById('success-area');
+        successBox.style.display = 'block';
+        document.getElementById('store-id-display').innerText = `معرف المتجر: ${storeData.id}`;
         document.getElementById('admin-link').href = `admin.html?store_id=${storeData.id}`;
     }
 </script>
