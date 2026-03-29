@@ -53,3 +53,102 @@
 
         <div class="form-group">
             <label>🤖 توكن بوت التليجرام (إلزامي):</label>
+            <input type="text" id="bot-token" placeholder="123456789:ABCdefG..." required>
+            <span class="help-text">احصل عليه من <a href="https://t.me/BotFather" target="_blank">@BotFather</a> عبر أمر <code>/newbot</code></span>
+        </div>
+
+        <div class="form-group">
+            <label>🎨 لون هوية المتجر:</label>
+            <input type="color" id="theme-color" value="#1e293b" style="height: 45px; padding: 2px; cursor: pointer;">
+        </div>
+
+        <button class="btn-launch" id="submit-btn" onclick="launchSaaS()">تفعيل المتجر والربط ✨</button>
+    </div>
+
+    <div id="success-area" class="success-box">
+        <div style="font-size: 4rem; margin-bottom: 15px;">🎉</div>
+        <h2 style="color: #166534; margin: 0 0 10px 0;">متجرك جاهز للعمل!</h2>
+        <p style="color: #1e40af; font-weight: bold; font-size: 0.8rem; background: #dbeafe; padding: 10px; border-radius: 10px;" id="store-id-display"></p>
+        <p style="color: #4b5563; line-height: 1.6;">تم ربط بوت التليجرام وتجهيز قاعدة البيانات بنجاح. يمكنك الآن الدخول وإضافة أول منتج.</p>
+        <a href="admin.html" id="admin-link" style="display: block; margin-top: 25px; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold;">دخول لوحة التحكم ⬅️</a>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    // دالة للتحقق من صحة التوكن عبر API تليجرام
+    async function isTokenValid(token) {
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+            const data = await response.json();
+            return data.ok;
+        } catch (e) { return false; }
+    }
+
+    async function launchSaaS() {
+        const email = document.getElementById('owner-email').value;
+        const pass = document.getElementById('owner-pass').value;
+        const name = document.getElementById('store-name').value;
+        const token = document.getElementById('bot-token').value;
+        const color = document.getElementById('theme-color').value;
+        const btn = document.getElementById('submit-btn');
+
+        if(!email || !pass || !name || !token) {
+            return alert("جميع الحقول إجبارية، يرجى تعبئة توكن البوت لتفعيل النظام.");
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = 'جاري التحقق من التوكن... ⏳';
+
+        // 1. التحقق من التوكن أولاً
+        const isValid = await isTokenValid(token);
+        if(!isValid) {
+            btn.disabled = false;
+            btn.innerHTML = 'تفعيل المتجر والربط ✨';
+            return alert("عذراً، توكن بوت التليجرام غير صحيح! تأكد من نسخه بشكل كامل من BotFather.");
+        }
+
+        btn.innerHTML = 'جاري بناء المتجر... 🏗️';
+
+        // 2. إنشاء المتجر في جدول stores
+        const { data: storeData, error: storeError } = await _supabase
+            .from('stores')
+            .insert([{ 
+                owner_email: email, 
+                store_name: name, 
+                bot_token: token, 
+                theme_color: color 
+            }])
+            .select()
+            .single();
+
+        if (storeError) {
+            btn.disabled = false;
+            btn.innerHTML = 'تفعيل المتجر والربط ✨';
+            return alert("خطأ في إنشاء المتجر: " + storeError.message);
+        }
+
+        // 3. إنشاء حساب المدير في جدول staff وربطه بالمتجر الجديد
+        const { error: staffError } = await _supabase
+            .from('staff')
+            .insert([{ 
+                full_name: "مدير المتجر", 
+                email: email, 
+                password: pass, 
+                role: 'owner',
+                store_id: storeData.id 
+            }]);
+
+        if (staffError) return alert("حدث خطأ أثناء إعداد صلاحيات الإدارة.");
+
+        // 4. عرض النجاح
+        document.getElementById('setup-form').style.display = 'none';
+        document.getElementById('success-area').style.display = 'block';
+        document.getElementById('store-id-display').innerText = `ID المتجر: ${storeData.id}`;
+        document.getElementById('admin-link').href = `admin.html?store_id=${storeData.id}`;
+    }
+</script>
+
+</body>
+</html>
