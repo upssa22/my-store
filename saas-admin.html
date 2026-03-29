@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير المنصة | الإدارة العليا 🌐</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/app-config.js"></script>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --danger: #ef4444; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+        
+        /* الهيدر الرئيسي */
+        .super-header { background: var(--primary); color: white; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--accent); }
+        .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1100px; margin: -30px auto 30px; padding: 0 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid var(--accent); }
+        .stat-card h3 { margin: 0; color: #64748b; font-size: 0.9rem; }
+        .stat-card div { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-top: 5px; }
+
+        /* قائمة المتاجر */
+        .main-content { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .stores-table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 15px; text-align: right; color: #64748b; font-size: 0.85rem; border-bottom: 2px solid #edf2f7; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        
+        .store-name { font-weight: bold; color: var(--primary); display: block; }
+        .store-email { font-size: 0.8rem; color: #94a3b8; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+        .badge-active { background: #dcfce7; color: #166534; }
+        
+        .btn-del { background: #fee2e2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-del:hover { background: var(--danger); color: white; }
+        
+        .empty-state { padding: 50px; text-align: center; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<header class="super-header">
+    <div>
+        <h1 style="margin:0; font-size: 1.5rem;">🌐 لوحة تحكم المنصة (SaaS Admin)</h1>
+        <small style="opacity: 0.7;">إدارة المتاجر والعملاء المشتركين</small>
+    </div>
+    <div style="font-weight: bold;">المطور الرئيسي ✨</div>
+</header>
+
+<div class="main-content">
+    <div class="stats-bar">
+        <div class="stat-card">
+            <h3>إجمالي المتاجر</h3>
+            <div id="total-stores">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>المتاجر النشطة</h3>
+            <div id="active-stores" style="color: #10b981;">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>عمليات التسجيل (اليوم)</h3>
+            <div id="today-stores">0</div>
+        </div>
+    </div>
+
+    <div class="stores-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم المتجر / المالك</th>
+                    <th>معرف المتجر (ID)</th>
+                    <th>تاريخ التأسيس</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="stores-tbody">
+                </tbody>
+        </table>
+        <div id="loading-state" class="empty-state">جاري جلب بيانات المتاجر...</div>
+    </div>
+</div>
+
+<script>
+    const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    async function fetchDashboardData() {
+        // 1. جلب كافة المتاجر
+        const { data: stores, error } = await _supabase
+            .from('stores')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error(error);
+            alert("فشل في جلب البيانات!");
+            return;
+        }
+
+        // 2. تحديث الإحصائيات
+        document.getElementById('total-stores').innerText = stores.length;
+        document.getElementById('active-stores').innerText = stores.filter(s => s.is_active).length;
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todayCount = stores.filter(s => s.created_at.startsWith(today)).length;
+        document.getElementById('today-stores').innerText = todayCount;
+
+        // 3. بناء الجدول
+        const tbody = document.getElementById('stores-tbody');
+        const loading = document.getElementById('loading-state');
+        
+        if (stores.length === 0) {
+            loading.innerText = "لا يوجد أي متجر مسجل حالياً.";
+            return;
+        }
+
+        loading.style.display = 'none';
+        tbody.innerHTML = stores.map(store => `
+            <tr>
+                <td>
+                    <span class="store-name">${store.store_name || 'بدون اسم'}</span>
+                    <span class="store-email">${store.owner_email}</span>
+                </td>
+                <td style="font-family: monospace; font-size: 0.75rem; color: #64748b;">
+                    ${store.id}
+                </td>
+                <td style="font-size: 0.85rem; color: #475569;">
+                    ${new Date(store.created_at).toLocaleDateString('ar-EG')}
+                </td>
+                <td>
+                    <span class="badge ${store.is_active ? 'badge-active' : ''}">
+                        ${store.is_active ? 'نشط' : 'متوقف'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-del" onclick="confirmDelete('${store.id}', '${store.store_name}')">حذف نهائي 🗑️</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function confirmDelete(id, name) {
+        const check = confirm(`⚠️ تنبيه خطير:\nهل أنت متأكد من حذف متجر "${name}"؟\nسيتم مسح كافة المنتجات والرسائل والمشرفين المرتبطين بهذا المتجر ولا يمكن التراجع!`);
+        
+        if (check) {
+            const { error } = await _supabase.from('stores').delete().eq('id', id);
+            if (!error) {
+                alert("تم حذف المتجر وجميع بياناته بنجاح.");
+                fetchDashboardData(); // تحديث القائمة
+            } else {
+                alert("خطأ أثناء الحذف: " + error.message);
+            }
+        }
+    }
+
+    // التشغيل الأولي
+    fetchDashboardData();
+</script>
+
+</body>
+</html>
