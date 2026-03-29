@@ -1,22 +1,25 @@
-// ملف api/get-media.js - جالب الوسائط السري
 export default async function handler(req, res) {
     const { fileId } = req.query;
     const BOT_TOKEN = process.env.TELEGRAM_TOKEN;
 
-    if (!fileId) return res.status(400).send("مفقود ID الملف");
+    if (!fileId) return res.status(400).send("مفقود معرف الملف");
 
     try {
-        // 1. طلب مسار الملف من تليجرام (سرياً بالسيرفر)
-        const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
-        const fileData = await fileRes.json();
+        // طلب مسار الملف من تليجرام (السيرفر يتحدث مع السيرفر)
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+        const data = await response.json();
 
-        if (fileData.ok) {
-            const fullUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
-            // 2. إعادة توجيه المتصفح للرابط الحقيقي دون كشف التوكن
+        if (data.ok) {
+            // تكوين الرابط المباشر للملف
+            const filePath = data.result.file_path;
+            const fullUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+            
+            // إعادة توجيه المتصفح للرابط (Redirect)
             return res.redirect(fullUrl);
+        } else {
+            return res.status(404).send("الملف غير موجود أو انتهت صلاحيته في تليجرام");
         }
-        res.status(404).send("الملف غير موجود");
-    } catch (e) {
-        res.status(500).send("خطأ في السيرفر");
+    } catch (error) {
+        return res.status(500).send("خطأ في الاتصال بتليجرام");
     }
 }
