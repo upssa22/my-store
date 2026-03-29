@@ -1,96 +1,30 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | المقر الملكي 👑</title>
+    <meta charset="UTF-8"><title>لوحة التحكم | المقر الملكي 👑</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            direction: rtl;
-        }
-        .admin-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 400px;
-        }
-        h1 { color: #1e293b; margin-bottom: 25px; }
-        
-        .admin-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        /* تصميم الأزرار كما كانت في نسختك القديمة */
-        .menu-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 18px;
-            text-decoration: none;
-            color: white;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        
-        .menu-item:active { transform: scale(0.95); }
-        .menu-item:hover { opacity: 0.9; }
-
-        /* الألوان الأصلية لكل قسم */
-        .products { background-color: #4f46e5; } /* بنفسجي/أزرق المنتجات */
-        .monitor  { background-color: #0ea5e9; } /* أزرق سماوي للمراقبة - الجديد */
-        .admins    { background-color: #10b981; } /* أخضر المشرفين */
-        .appearance { background-color: #f59e0b; } /* برتقالي المظهر */
-        .stats     { background-color: #6366f1; } /* إحصائيات */
-        .logout    { background-color: #ef4444; margin-top: 10px; } /* أحمر خروج */
-
-        .icon { font-size: 1.4rem; }
+        :root { --royal-blue: #1e293b; --royal-gold: #c5a059; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; direction: rtl; }
+        .admin-box { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 400px; border-top: 8px solid var(--royal-gold); }
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 25px; }
+        .menu-item { text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
+        .products { background: #4f46e5; } .monitor { background: #0ea5e9; } .sales { background: #10b981; } .settings { background: #64748b; }
+        .menu-item:hover { transform: translateY(-3px); opacity: 0.9; }
     </style>
 </head>
 <body>
-
-    <div class="admin-container">
-        <h1>👑 لوحة التحكم</h1>
-        
-        <div class="admin-menu">
-            <a href="admin-products.html" class="menu-item products">
-                <span class="icon">📦</span> إدارة المنتجات
-            </a>
-
-            <a href="admin-messages.html" class="menu-item monitor">
-                <span class="icon">🛡️</span> شاشة المراقبة والوسائط
-            </a>
-
-            <a href="#" class="menu-item admins">
-                <span class="icon">👥</span> إدارة المشرفين
-            </a>
-
-            <a href="#" class="menu-item appearance">
-                <span class="icon">🎨</span> تخصيص المظهر
-            </a>
-
-            <a href="#" class="menu-item stats">
-                <span class="icon">📊</span> إحصائيات المتجر
-            </a>
-
-            <a href="index.html" class="menu-item logout">
-                <span class="icon">🚪</span> خروج من المقر
-            </a>
+    <div class="admin-box">
+        <div style="font-size: 3rem;">🏰</div>
+        <h1>لوحة التحكم الملكية</h1>
+        <div class="menu-grid">
+            <a href="admin-products.html" class="menu-item products">📦 إدارة المنتجات</a>
+            <a href="admin-messages.html" class="menu-item monitor">🛡️ شاشة المراقبة</a>
+            <a href="admin-sales.html" class="menu-item sales">💰 سجل المبيعات</a>
+            <a href="admin-users.html" class="menu-item settings">👥 المستخدمين</a>
+            <a href="admin-staff.html" class="menu-item settings" style="background:#1e293b">👮 المشرفين</a>
+            <a href="admin-settings.html" class="menu-item settings" style="background:#f59e0b">⚙️ الإعدادات</a>
+            <a href="index.html" class="menu-item" style="background:#ef4444; margin-top:10px;">🚪 خروج</a>
         </div>
     </div>
-
 </body>
 </html>
